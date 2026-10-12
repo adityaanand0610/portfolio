@@ -3805,6 +3805,7 @@
           <input type="file" id="csvImportFile" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
         </div>
         <div class="td-empty-note" style="text-align:left; padding:8px 0 0;">
+          A <b>Holdings / Portfolio</b> CSV (Name, Quantity, Avg Price, Last Traded, …) is also detected automatically and imported as open positions.<br>
           <b>Broker</b> tradebook (.xlsx or .csv) — the header row is found automatically even when the sheet has client-info rows above it, and buy/sell legs are matched FIFO into round trips. A <b>tradewise exits</b> report (entry/exit date, quantity, buy &amp; sell value) also works. A broker <b>Stocks P&amp;L Statement</b> (.xlsx with "Trade Level" &amp; "Scrip Level" sheets) is detected automatically — realised trades, still-open holdings and the charges breakup in one go. Any other broker: columns <b>Ticker, Entry Date, Entry Price, Exit Date, Exit Price, Qty</b> (Direction optional).
         </div>
         <div id="csvImportError" class="td-empty-note" style="color:var(--rose); display:none; text-align:left; padding-top:8px;"></div>
@@ -5740,8 +5741,69 @@
     return s;
   }
 
+  // ---- Path 0: broker "Holdings / Portfolio" export ----------------------------
+  // One row per stock you currently hold: Name, Quantity, Avg Price, Last Traded,
+  // Investment, Current Value, P&L, P&L %. There are no buy/sell dates, so every
+  // row becomes an OPEN long position dated today; the Last Traded price rides
+  // along as the mark price (live quotes overwrite it when the proxy is set up).
+  // Numbers use Indian grouping ("1,82,250.00") and "%" signs, both stripped here.
+  const HOLDING_NAME_TO_SYMBOL = {
+    'bai kakaji polymers':'BAIKAKAJI', 'bai-kakaji polymers':'BAIKAKAJI',
+    'e2e networks':'E2E',
+    'himadri speciality chemical':'HSCL', 'himadri speciality chemicals':'HSCL',
+    'jindal drilling & industries':'JINDRILL', 'jindal drilling and industries':'JINDRILL',
+    'moschip technologies':'MOSCHIP',
+    'sterlite technologies':'STLTECH'
+  };
+  function holdingNum(v){ return parseFloat(String(v==null?'':v).replace(/[₹,%\s]/g,'')); }
+  function holdingTicker(name){
+    const raw = String(name||'').trim();
+    if(!raw) return '';
+    const key = raw.toLowerCase().replace(/\s+(ltd|limited)\.?$/,'');
+    const userMap = (typeof db!=='undefined' && db && db.symbolMap) ? db.symbolMap : {};
+    if(userMap[raw.toUpperCase()]) return raw.toUpperCase(); // already mapped by the user → keep name as ticker
+    if(HOLDING_NAME_TO_SYMBOL[key]) return HOLDING_NAME_TO_SYMBOL[key];
+    // Already looks like an exchange symbol (RELIANCE, M&M, BAJAJ-AUTO)? keep it.
+    if(/^[A-Za-z0-9][A-Za-z0-9&\-]{0,19}$/.test(raw)) return raw.toUpperCase();
+    return raw.toUpperCase(); // unknown company name — still imports, just without live quotes
+  }
+  function tradesFromHoldings(headers, records){
+    const has = n=> headers.includes(n);
+    if(['trade_type','trade type','buy/sell','side','entry date','buy date'].some(has)) return null;
+    const nameCol = ['name','stock name','stock','symbol','company','company name','instrument','scrip'].find(has);
+    const qtyCol  = ['quantity','qty','shares'].find(has);
+    const avgCol  = ['avg price','avg. price','average price','avg cost','average cost','buy avg'].find(has);
+    const ltpCol  = ['last traded','last traded price','ltp','current price','last price','cmp'].find(has);
+    const cvCol   = ['current value','market value'].find(has);
+    const pnlCol  = ['p&l','pnl','unrealised p&l','unrealized p&l','unrealised pnl','unrealized pnl'].find(has);
+    if(!(nameCol && qtyCol && avgCol && (ltpCol || cvCol))) return null;
+    const today = todayKey();
+    const out = [];
+    records.forEach(r=>{
+      const name = (r[nameCol]||'').trim();
+      if(!name || /^total/i.test(name)) return;
+      const qty = holdingNum(r[qtyCol]), avg = holdingNum(r[avgCol]);
+      if(!(qty>0) || isNaN(avg)) return;
+      let ltp = ltpCol ? holdingNum(r[ltpCol]) : NaN;
+      if(isNaN(ltp) && cvCol){ const cv = holdingNum(r[cvCol]); if(!isNaN(cv)) ltp = Math.round(cv/qty*100)/100; }
+      let unreal = pnlCol ? holdingNum(r[pnlCol]) : NaN;
+      if(isNaN(unreal) && !isNaN(ltp)) unreal = Math.round((ltp-avg)*qty*100)/100;
+      out.push({
+        id: 'trade_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+        ticker: holdingTicker(name), isin: '', date: today, timeframe: 'Positional', direction: 'long',
+        entryDT: today+'T09:15', entryPrice: avg, qty, posSize: Math.round(avg*qty*100)/100,
+        markPrice: isNaN(ltp)?'':ltp, markDate: today, unrealizedPnl: isNaN(unreal)?'':unreal,
+        source: 'portfolio-import'
+      });
+    });
+    if(!out.length) throw new Error('Found a holdings table but no rows with a quantity and average price.');
+    return out;
+  }
+
   function tradesFromRecords(headers, records){
     if(!records.length) throw new Error('No data rows found in that file.');
+    const holdingTrades = tradesFromHoldings(headers, records);
+    if(holdingTrades) return holdingTrades;
     // Path 1: one row per buy/sell leg (Zerodha, Groww, and most other Indian
     // broker tradebook exports). Legs get matched FIFO per symbol into round trips.
     const legMap = mapHeaders(headers, LEG_HEADER_ALIASES);
@@ -5980,6 +6042,11 @@
   // re-imports should update the existing row's mark price rather than be
   // skipped as duplicates or piled up as repeats.
   function findOpenPositionMatch(t){
+    // Holdings-export rows have no real buy date (stamped with the import day), so
+    // re-importing a later snapshot matches on ticker alone and refreshes qty / avg / mark.
+    if(t.source==='portfolio-import'){
+      return (db.trades||[]).find(ex=> ex.ticker===t.ticker && !ex.exitDT && ex.source==='portfolio-import');
+    }
     return (db.trades||[]).find(ex=> ex.ticker===t.ticker && ex.entryDT===t.entryDT && !ex.exitDT && Math.abs((parseFloat(ex.qty)||0)-(parseFloat(t.qty)||0))<0.001);
   }
   // De-duplicates a charges import by the exact statement period — importing
@@ -6032,7 +6099,8 @@
         document.getElementById('csvImportSummary').textContent =
           `Found ${withFlags.length} trade${withFlags.length===1?'':'s'} — ${newCount} new` +
           `${updateCount?', '+updateCount+' open position'+(updateCount===1?'':'s')+' refreshed with the latest mark price':''}` +
-          `${dupCount?', '+dupCount+' already in your journal (skipped)':''}.` + chargesNote;
+          `${dupCount?', '+dupCount+' already in your journal (skipped)':''}.` + chargesNote +
+          (withFlags.some(t=>t.source==='portfolio-import') ? ' Holdings file detected: each stock is added as an open position dated today (the file has no buy dates).' : '');
         const rows = withFlags.map(t=>{
           const rowNote = t._upsertId ? ' (updates open position)' : (t._dup ? ' (duplicate)' : '');
           const exitLabel = t.exitDT ? `${(t.exitDT||'').slice(0,10)} @ ${t.exitPrice}` : (t.markPrice!==undefined && t.markPrice!=='' ? `open · mark ${t.markPrice}` : 'open');
@@ -6067,6 +6135,7 @@
       const {_dup, _upsertId, ...clean} = t;
       if(_upsertId){
         const idx = db.trades.findIndex(ex=>ex.id===_upsertId);
+        if(clean.source==='portfolio-import'){ delete clean.date; delete clean.entryDT; delete clean.timeframe; } // keep the original buy date
         if(idx>-1){ db.trades[idx] = Object.assign({}, db.trades[idx], clean, {id: db.trades[idx].id}); updatedCount++; }
       } else if(!_dup){
         db.trades.push(clean); addedCount++;
