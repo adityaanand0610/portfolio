@@ -1477,6 +1477,31 @@
   .tcal-legend{ display:flex; align-items:center; gap:16px; margin-top:16px; font-size:11px; color:var(--ink-faint); flex-wrap:wrap; }
   .tcal-legend-item{ display:flex; align-items:center; gap:6px; }
   .tcal-legend-dot{ width:10px; height:10px; border-radius:3px; }
+  /* ---- Portfolio vs indices (calendar cells, week column, scorecard) ---- */
+  .tcal-cmp{ font-family:'IBM Plex Mono'; font-size:8.5px; font-weight:800; line-height:1; padding:1px 3px; border-radius:4px; white-space:nowrap; }
+  .tcal-cmp.pos{ color:var(--teal-dim); background:color-mix(in srgb, var(--teal) 16%, transparent); }
+  .tcal-cmp.neg{ color:var(--rose-dim); background:color-mix(in srgb, var(--rose) 16%, transparent); }
+  .tcal-cmp.tie{ color:var(--ink-faint); background:var(--surface-raised); }
+  .tcal-cell.has-cmp{ cursor:pointer; }
+  .tcal-cell.has-cmp .tcal-trade-count{ display:none; }
+  .tcal-week-cmp{ margin-top:2px; display:flex; flex-direction:column; align-items:center; gap:1px; }
+  .tcal-week-cmp-lbl{ font-size:7px; color:var(--ink-faint); font-weight:700; text-transform:uppercase; letter-spacing:.03em; }
+  .tcal-cmp-card{ margin-top:18px; padding-top:16px; border-top:1px dashed var(--line); }
+  .tcal-cmp-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+  .tcal-cmp-title{ font-size:12px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-dim); }
+  .tcal-cmp-ctl{ display:flex; gap:6px; flex-wrap:wrap; }
+  .tcal-cmp-ctl .eq-range-btn{ white-space:nowrap; }
+  .tcal-cmp-table{ width:100%; border-collapse:collapse; font-size:12px; }
+  .tcal-cmp-table th{ text-align:right; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); font-weight:700; padding:6px 6px; border-bottom:1px solid var(--line); }
+  .tcal-cmp-table th:first-child, .tcal-cmp-table td:first-child{ text-align:left; }
+  .tcal-cmp-table td{ text-align:right; padding:9px 6px; border-bottom:1px solid var(--line); font-family:'IBM Plex Mono'; font-weight:700; }
+  .tcal-cmp-table td:first-child{ font-family:inherit; font-weight:700; }
+  .tcal-cmp-table td.pos{ color:var(--teal-dim); } .tcal-cmp-table td.neg{ color:var(--rose-dim); }
+  .tcal-cmp-table tr:last-child td{ border-bottom:none; }
+  .tcal-cmp-note{ font-size:10.5px; color:var(--ink-faint); margin-top:8px; line-height:1.5; }
+  .tcal-cmp-day{ display:grid; grid-template-columns:1fr auto auto; gap:4px 12px; font-family:'IBM Plex Mono'; font-size:11.5px; align-items:center; }
+  .tcal-cmp-day .h{ font-size:9.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; font-family:inherit; font-weight:700; }
+  .tcal-cmp-day .pos{ color:var(--teal-dim); font-weight:700; } .tcal-cmp-day .neg{ color:var(--rose-dim); font-weight:700; }
   .tcal-selected-trades{ margin-top:16px; }
   .tcal-selected-label{ display:flex; align-items:center; justify-content:space-between; font-size:11px; font-weight:700; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px; }
   .tcal-selected-label .tcal-selected-total{ font-family:'IBM Plex Mono'; text-transform:none; letter-spacing:0; font-size:12.5px; }
@@ -3161,7 +3186,10 @@
             <div class="tcal-legend-item"><span class="tcal-legend-dot" style="background:var(--rose-bg); border:1px solid var(--rose);"></span>Loss day</div>
             <div class="tcal-legend-item"><span class="tcal-legend-dot" style="background:var(--surface); border:1px solid var(--line);"></span>No trades</div>
             <div class="tcal-legend-item">Darker = bigger day</div>
+            <div class="tcal-legend-item"><span class="tcal-cmp pos" style="position:static;">▲0.4</span>beat the index (pp)</div>
+            <div class="tcal-legend-item"><span class="tcal-cmp neg" style="position:static;">▼0.4</span>lagged the index</div>
           </div>
+          <div class="tcal-cmp-card" id="tcalCmpCard"></div>
           <div class="tcal-selected-trades" id="tcalSelectedTrades"></div>
         </div>
       </div>
@@ -7098,6 +7126,7 @@
         Object.keys(got).forEach(function(k){ var q = got[k], old = liveQuotes[k]; q.prevLtp = old ? old.ltp : null; liveQuotes[k] = q; });
         liveMissing = missing; bkLoginNeeded = false; bkRateStrikes = 0;
         bkApplyLiveMarks();
+        try{ cmpRecordToday(); cmpFetchIndexLive().then(function(){ cmpRecordToday(); }).catch(function(){}); }catch(e){}
         bkSetLive('ok', '', Array.from(src).join('+'), asOf);
         bkLiveDependents();
         return true;
@@ -8525,6 +8554,7 @@
     const daysInMonth = new Date(y,mo+1,0).getDate();
     const byDay = tradesByDayKey();
     const todayKeyStr = todayKey();
+    let cmpRows = {}; try{ cmpRows = cmpDailyRows(); }catch(e){ console.warn(e); }
 
     // ---- Pass 1: compute per-day P&L for this month + month-level stats,
     // so day-cell heat intensity can scale relative to the month's biggest day. ----
@@ -8616,26 +8646,30 @@
         }
         const daySnap = snaps[c.key];
         if(daySnap) cls += ' has-snap';
+        const cmpTag = cmpCellTag(cmpRows[c.key]);
+        if(cmpTag) cls += ' has-cmp';
         if(c.key===todayKeyStr) cls += ' is-today';
         if(c.key===tcalSelectedKey) cls += ' is-selected';
         html += `<div class="${cls}" data-daykey="${c.key}"${styleAttr}>
           ${daySnap?`<span class="tcal-snap-dot" title="Unrealised ${fmtCompactPnl(daySnap.u)}"></span>`:''}
           <div class="tcal-day-num">${c.d}</div>
           ${stat.hasPnl?`<div class="tcal-pnl-tag">${fmtPnl(Math.round(stat.pnl))}</div><div class="tcal-trade-count">${stat.count} trade${stat.count===1?'':'s'}</div>`:(stat.count?`<div class="tcal-pnl-tag" style="color:var(--ink-faint);">${stat.count}T</div>`:'')}
+          ${cmpTag}
         </div>`;
       });
       const wtCls = weekHasPnl ? (weekTotal>=0?'pos':'neg') : '';
-      html += `<div class="tcal-week-total"><div class="tcal-week-total-lbl">Wk</div><div class="tcal-week-total-val ${wtCls}">${weekHasPnl?fmtPnl(Math.round(weekTotal)):'—'}</div>${weekSnap?`<div class="tcal-week-u ${weekSnap.u>=0?'pos':'neg'}" title="Unrealised at week end">U ${fmtCompactPnl(weekSnap.u)}</div>`:''}</div>`;
+      html += `<div class="tcal-week-total"><div class="tcal-week-total-lbl">Wk</div><div class="tcal-week-total-val ${wtCls}">${weekHasPnl?fmtPnl(Math.round(weekTotal)):'—'}</div>${weekSnap?`<div class="tcal-week-u ${weekSnap.u>=0?'pos':'neg'}" title="Unrealised at week end">U ${fmtCompactPnl(weekSnap.u)}</div>`:''}${cmpWeekTag(week.filter(c=>!c.empty).map(c=>c.key), cmpRows)}</div>`;
       html += '</div>';
     }
     gridEl.innerHTML = html;
-    gridEl.querySelectorAll('.tcal-cell.has-trades, .tcal-cell.has-snap').forEach(cell=>{
+    gridEl.querySelectorAll('.tcal-cell.has-trades, .tcal-cell.has-snap, .tcal-cell.has-cmp').forEach(cell=>{
       cell.addEventListener('click', ()=>{
         const key = cell.dataset.daykey;
         tcalSelectedKey = (tcalSelectedKey===key) ? null : key;
         renderTradeCalendar();
       });
     });
+    try{ renderCmpCard(cmpRows); }catch(e){ console.warn(e); }
     renderTcalSelectedTrades();
   }
   function renderTcalSelectedTrades(){
@@ -8647,6 +8681,7 @@
     const dayTotal = withPnl.reduce((s,t)=>s+parseFloat(t.pnl),0);
     const totalCls = withPnl.length ? (dayTotal>=0?'pos':'neg') : '';
     const dateLabel = new Date(tcalSelectedKey+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short', day:'numeric', month:'short', year:'numeric'});
+    let cmpDayHtml = ''; try{ cmpDayHtml = cmpDayDetailHtml(tcalSelectedKey); }catch(e){}
     const _snaps = db.unrealSnaps || {}, _sk = Object.keys(_snaps).sort();
     let snapHtml = '';
     if(_snaps[tcalSelectedKey]){
@@ -8654,7 +8689,7 @@
       const dlt = pi>=0 ? sn.u-_snaps[_sk[pi]].u : null;
       snapHtml = `<div class="td-bd-row"><div class="td-bd-top"><span class="td-bd-name">Unrealised snapshot</span><span class="trade-pnl ${sn.u>=0?'pos':'neg'}">${fmtPnl(Math.round(sn.u))}</span></div><div class="td-bd-meta">${sn.n} open position${sn.n===1?'':'s'}${dlt!==null?' · '+(dlt>=0?'+':'−')+fmtCompactPnl(Math.abs(dlt)).replace(/^[+-]/,'')+' vs previous snapshot':''}</div></div>`;
     }
-    el.innerHTML = snapHtml + `<div class="tcal-selected-label"><span>${dateLabel} · ${dayTrades.length} trade${dayTrades.length===1?'':'s'}</span>${withPnl.length?`<span class="tcal-selected-total ${totalCls}">${fmtPnl(Math.round(dayTotal))}</span>`:''}</div>` + dayTrades.map(t=>{
+    el.innerHTML = cmpDayHtml + snapHtml + `<div class="tcal-selected-label"><span>${dateLabel} · ${dayTrades.length} trade${dayTrades.length===1?'':'s'}</span>${withPnl.length?`<span class="tcal-selected-total ${totalCls}">${fmtPnl(Math.round(dayTotal))}</span>`:''}</div>` + dayTrades.map(t=>{
       const n = parseFloat(t.pnl);
       const cls = isNaN(n)?'':(n>=0?'pos':'neg');
       const dirTag = t.direction==='short'?'Short':'Long';
@@ -8688,6 +8723,183 @@
   if(tcalNextBtn) tcalNextBtn.addEventListener('click', ()=>{ tcalViewDate = new Date(tcalViewDate.getFullYear(), tcalViewDate.getMonth()+1, 1); tcalSelectedKey=null; renderTradeCalendar(); });
   const tcalTodayBtn = document.getElementById('tcalTodayBtn');
   if(tcalTodayBtn) tcalTodayBtn.addEventListener('click', ()=>{ tcalViewDate = new Date(); tcalSelectedKey = todayKey(); renderTradeCalendar(); });
+
+  // =====================================================================
+  // PORTFOLIO vs INDICES — one-day change, per day, with a win/lose scorecard.
+  //  • Portfolio day change: recorded from live quotes (sum of (LTP − previous close) × qty
+  //    over open positions ÷ their previous-close value) into db.dayCmp[date]. The latest
+  //    reading of each trading day wins, so the stored value ends at the day's close.
+  //    Days before recording started are back-filled from the unrealised-P&L snapshots,
+  //    but only when the holdings were unchanged between two snapshots (flagged "est.").
+  //  • Index day change: Nifty 50 / Midcap 100 / Smallcap 250 daily closes (same candles the
+  //    benchmark charts use); today's value comes from a live index quote when available.
+  //  • "Beat" = portfolio % change greater than the index % change that day.
+  // =====================================================================
+  var CMP_KEYS = ['nifty50','midcap100','smallcap250'];
+  var CMP_SHORT = { nifty50:'Nifty 50', midcap100:'Midcap 100', smallcap250:'Smallcap 250' };
+  var cmpIndexSel = 'nifty50';          // index shown inside calendar cells + week column
+  var cmpScope = 'month';               // scorecard range: 'month' (calendar month shown) | 'all'
+  var cmpIdxLive = { date:'', v:{} }, cmpIdxLiveAt = 0, cmpLastSave = 0, cmpLastSig = '';
+  var cmpLoading = false, cmpLoadAt = 0;
+
+  function cmpIstKey(){ return bkIstNow().toISOString().slice(0,10); }
+  function cmpR2(n){ return Math.round(n*100)/100; }
+
+  function cmpRecordToday(){
+    try{
+      var d = bkIstNow(), dow = d.getUTCDay(); if(dow===0 || dow===6) return;
+      if(d.getUTCHours()*60 + d.getUTCMinutes() < 555) return;   // before 09:15 IST quotes still show yesterday's move
+      var rows = bkOpenRows(), pnl = 0, base = 0, n = 0;
+      rows.forEach(function(r){
+        var q = r.quote; if(!q) return;
+        var lt = parseFloat(q.ltp), pc = parseFloat(q.prevClose);
+        if(isNaN(pc) && !isNaN(lt) && q.dayChange!==undefined && q.dayChange!==null) pc = lt - parseFloat(q.dayChange);
+        if(isNaN(lt) || !(pc>0)) return;
+        var sg = r.dir==='short' ? -1 : 1;
+        pnl += (lt-pc)*r.qty*sg; base += pc*r.qty; n++;
+      });
+      if(!n || !(base>0)) return;
+      var key = cmpIstKey(), rec = { p: cmpR2(pnl/base*100), pnl: cmpR2(pnl), base: Math.round(base), n: n, of: rows.length };
+      if(cmpIdxLive.date===key && Object.keys(cmpIdxLive.v).length) rec.idx = Object.assign({}, cmpIdxLive.v);
+      var sig = key+'|'+rec.p+'|'+rec.n+'|'+JSON.stringify(rec.idx||{});
+      if(sig===cmpLastSig) return;
+      cmpLastSig = sig;
+      if(!db.dayCmp) db.dayCmp = {};
+      var isNew = !db.dayCmp[key];
+      db.dayCmp[key] = rec;
+      if(isNew || Date.now()-cmpLastSave > 300000){ cmpLastSave = Date.now(); saveDB(); }
+    }catch(e){ console.warn('cmpRecordToday', e); }
+  }
+  // Best-effort live index quotes (throttled to once a minute). If the proxy can't serve
+  // them, the calendar simply falls back to the index candles.
+  async function cmpFetchIndexLive(){
+    if(!bkReady() || Date.now() < bkCooldownUntil) return;
+    if(!bkMarketOpen() && cmpIdxLive.date===cmpIstKey() && Object.keys(cmpIdxLive.v).length) return;
+    if(Date.now()-cmpIdxLiveAt < 60000) return;
+    cmpIdxLiveAt = Date.now();
+    var syms = CMP_KEYS.map(function(k){ return BENCHMARK_TICKERS[k].symbols[0]; });
+    try{
+      var r = await bkGet('/quotes', {symbols: syms.join(','), broker: bkCfg().pref});
+      var qs = (r && r.quotes) || {}, o = {};
+      CMP_KEYS.forEach(function(k,i){ var q = qs[syms[i]], v = q ? parseFloat(q.dayChangePct) : NaN; if(!isNaN(v)) o[k] = cmpR2(v); });
+      cmpIdxLive = { date: cmpIstKey(), v: o };
+    }catch(e){ if(bkIsRateLimit(e)) bkStartCooldown(); }
+  }
+
+  function cmpIdxPoints(k){
+    var m = benchmarkMemCache[k]; if(Array.isArray(m)) return m;
+    var c = loadBenchmarkDiskCache()[k]; return (c && c.points && c.points.length) ? c.points : null;
+  }
+  // % move of index k from the close on/before fromDate (default: previous trading day) to the close ON toDate.
+  function cmpIdxMove(k, fromDate, toDate){
+    var pts = cmpIdxPoints(k); if(!pts || pts.length<2) return null;
+    var bi = -1; for(var i=0;i<pts.length;i++){ if(pts[i].date===toDate){ bi = i; break; } }
+    if(bi<1) return null;
+    var a = null;
+    if(fromDate){ for(var j=0;j<pts.length;j++){ if(pts[j].date<=fromDate) a = pts[j]; else break; } }
+    else a = pts[bi-1];
+    if(!a || a.date>=toDate || !(a.close>0)) return null;
+    return (pts[bi].close/a.close-1)*100;
+  }
+  // date → {p, src:'live'|'snap', from?, idx:{key:pct|null}}
+  function cmpDailyRows(){
+    var out = {}, live = db.dayCmp || {}, snaps = db.unrealSnaps || {}, sk = Object.keys(snaps).sort();
+    for(var i=1;i<sk.length;i++){
+      var a = snaps[sk[i-1]], b = snaps[sk[i]], base = a.c + a.u;
+      if(a.c!==b.c || a.n!==b.n || !(base>0)) continue;               // holdings changed → can't isolate market move
+      out[sk[i]] = { p:(b.u-a.u)/base*100, src:'snap', from:sk[i-1] };
+    }
+    Object.keys(live).forEach(function(k){ out[k] = { p:live[k].p, src:'live', pnl:live[k].pnl, idxLive:live[k].idx||null }; });
+    var np = cmpIdxPoints('nifty50'), nSet = np ? new Set(np.map(function(p){ return p.date; })) : null, nLast = np && np.length ? np[np.length-1].date : '';
+    Object.keys(out).forEach(function(k){
+      var dow = new Date(k+'T00:00:00').getDay();
+      if(dow===0 || dow===6 || (nSet && nLast>k && !nSet.has(k))){ delete out[k]; return; }   // weekend / exchange holiday
+      var r = out[k]; r.idx = {};
+      CMP_KEYS.forEach(function(ik){
+        var v = (r.idxLive && r.idxLive[ik]!==undefined) ? r.idxLive[ik] : cmpIdxMove(ik, r.from||null, k);
+        r.idx[ik] = (v===null || isNaN(v)) ? null : v;
+      });
+    });
+    return out;
+  }
+  function cmpVerdict(diff){ return Math.abs(diff)<0.005 ? 'tie' : (diff>0 ? 'pos' : 'neg'); }
+  function cmpFmtPct(n){ return (n>=0?'+':'−')+Math.abs(n).toFixed(2)+'%'; }
+  function cmpCellTag(row){
+    if(!row || row.idx[cmpIndexSel]===null || row.idx[cmpIndexSel]===undefined) return '';
+    var diff = row.p - row.idx[cmpIndexSel], v = cmpVerdict(diff);
+    return '<div class="tcal-cmp '+v+'" title="Portfolio '+cmpFmtPct(row.p)+' vs '+CMP_SHORT[cmpIndexSel]+' '+cmpFmtPct(row.idx[cmpIndexSel])+(row.src==='snap'?' (est.)':'')+'">'+(v==='tie'?'=':(v==='pos'?'▲':'▼'))+Math.abs(diff).toFixed(1)+'</div>';
+  }
+  function cmpWeekTag(keys, rows){
+    var pf = 1, ix = 1, n = 0;
+    keys.forEach(function(k){ var r = rows[k]; if(!r || r.idx[cmpIndexSel]===null || r.idx[cmpIndexSel]===undefined) return; pf *= 1+r.p/100; ix *= 1+r.idx[cmpIndexSel]/100; n++; });
+    if(!n) return '';
+    var diff = (pf-1)*100 - (ix-1)*100, v = cmpVerdict(diff);
+    return '<div class="tcal-week-cmp"><span class="tcal-cmp '+v+'" title="Week (compounded over '+n+' day'+(n===1?'':'s')+'): portfolio '+cmpFmtPct((pf-1)*100)+' vs '+CMP_SHORT[cmpIndexSel]+' '+cmpFmtPct((ix-1)*100)+'">'+(v==='tie'?'=':(v==='pos'?'▲':'▼'))+Math.abs(diff).toFixed(1)+'</span><span class="tcal-week-cmp-lbl">vs '+CMP_SHORT[cmpIndexSel].replace('Nifty ','N')+'</span></div>';
+  }
+  function cmpDayDetailHtml(key){
+    var row = cmpDailyRows()[key]; if(!row) return '';
+    var line = function(label, v, diff){
+      return '<span>'+escapeHtml(label)+'</span><span>'+(v===null||v===undefined?'—':cmpFmtPct(v))+'</span><span class="'+(diff===null?'':cmpVerdict(diff))+'">'+(diff===null?'':(diff>=0?'+':'−')+Math.abs(diff).toFixed(2)+' pp')+'</span>';
+    };
+    var body = '<span class="h">1-day change</span><span class="h">%</span><span class="h">Portfolio vs</span>' + line('Your portfolio', row.p, null);
+    CMP_KEYS.forEach(function(k){ var v = row.idx[k]; body += line(CMP_SHORT[k], v, (v===null||v===undefined) ? null : row.p - v); });
+    return '<div class="td-bd-row"><div class="td-bd-top"><span class="td-bd-name">Portfolio vs indices'+(row.src==='snap'?' · estimated':'')+'</span></div><div class="tcal-cmp-day" style="margin-top:8px;">'+body+'</div>'
+      + (row.src==='snap' ? '<div class="td-bd-meta">Derived from unrealised-P&amp;L snapshots'+(row.from?' since '+row.from:'')+' (holdings unchanged between them).</div>' : '')+'</div>';
+  }
+
+  function cmpTally(rows, from, to){
+    var res = {}; CMP_KEYS.forEach(function(k){ res[k] = {beat:0, lag:0, tie:0, n:0, ex:0}; });
+    Object.keys(rows).forEach(function(d){
+      if(from && d<from) return; if(to && d>to) return;
+      var r = rows[d];
+      CMP_KEYS.forEach(function(k){
+        var v = r.idx[k]; if(v===null || v===undefined) return;
+        var diff = r.p - v, t = res[k]; t.n++; t.ex += diff;
+        var vd = cmpVerdict(diff); if(vd==='pos') t.beat++; else if(vd==='neg') t.lag++; else t.tie++;
+      });
+    });
+    return res;
+  }
+  function cmpEnsureIndices(){
+    if(!bkReady() || cmpLoading || Date.now()-cmpLoadAt < 300000) return;
+    cmpLoading = true; cmpLoadAt = Date.now();
+    Promise.all(CMP_KEYS.map(function(k){ return ensureBenchmarkLoaded(k).catch(function(){}); })).then(function(){
+      cmpLoading = false;
+      try{ if(document.getElementById('historyCalendarView').classList.contains('active')) renderTradeCalendar(); }catch(e){}
+    }).catch(function(){ cmpLoading = false; });
+  }
+  function renderCmpCard(rows){
+    var el = document.getElementById('tcalCmpCard'); if(!el) return;
+    cmpEnsureIndices();
+    var y = tcalViewDate.getFullYear(), mo = tcalViewDate.getMonth();
+    var from = null, to = null;
+    if(cmpScope==='month'){ var pre = y+'-'+String(mo+1).padStart(2,'0'); from = pre+'-01'; to = pre+'-31'; }
+    var t = cmpTally(rows, from, to);
+    var anyIdx = CMP_KEYS.some(function(k){ return t[k].n>0; });
+    var haveData = Object.keys(rows).some(function(d){ return (!from || d>=from) && (!to || d<=to); });
+    var seg = function(attr, val, label, cur){ return '<button class="eq-range-btn'+(cur===val?' on':'')+'" data-'+attr+'="'+val+'">'+label+'</button>'; };
+    var head = '<div class="tcal-cmp-head"><div class="tcal-cmp-title">Portfolio vs indices · daily scorecard</div><div class="tcal-cmp-ctl">'
+      + seg('cmpscope','month','This month',cmpScope) + seg('cmpscope','all','All time',cmpScope) + '</div></div>'
+      + '<div class="tcal-cmp-head" style="margin-bottom:8px;"><div class="tcal-cmp-title" style="font-weight:700;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ink-faint);">Show on calendar:</div><div class="tcal-cmp-ctl">'
+      + CMP_KEYS.map(function(k){ return seg('cmpidx',k,CMP_SHORT[k],cmpIndexSel); }).join('') + '</div></div>';
+    var body;
+    if(!anyIdx){
+      body = '<div class="td-empty-note" style="text-align:left;padding:6px 0;">'+(haveData
+        ? (bkReady() ? 'Loading index data…' : 'Portfolio days are recorded, but index data needs a broker connection (Settings → Broker connection).')
+        : 'Nothing to compare yet. Open the app on trading days with live prices on — each day\'s portfolio change is saved automatically and compared with Nifty 50, Midcap 100 and Smallcap 250.')+'</div>';
+    } else {
+      body = '<table class="tcal-cmp-table"><tr><th>Index</th><th>Beat it</th><th>Lagged</th><th>Tie</th><th>Days</th><th>Beat %</th><th>Avg pp</th></tr>'
+        + CMP_KEYS.map(function(k){
+          var r = t[k]; if(!r.n) return '<tr><td>'+CMP_SHORT[k]+'</td><td colspan="6" style="color:var(--ink-faint);">no data</td></tr>';
+          var rate = Math.round(r.beat/r.n*100), avg = r.ex/r.n;
+          return '<tr><td>'+CMP_SHORT[k]+'</td><td class="pos">'+r.beat+'</td><td class="neg">'+r.lag+'</td><td>'+r.tie+'</td><td>'+r.n+'</td><td class="'+(rate>=50?'pos':'neg')+'">'+rate+'%</td><td class="'+(avg>=0?'pos':'neg')+'">'+(avg>=0?'+':'−')+Math.abs(avg).toFixed(2)+'</td></tr>';
+        }).join('') + '</table>'
+        + '<div class="tcal-cmp-note">“Beat it” = days your portfolio\'s 1-day % change was higher than the index\'s; “Lagged” = days the index was higher. Avg pp = average daily gap in percentage points. Tap a calendar day for the exact numbers.</div>';
+    }
+    el.innerHTML = head + body;
+    el.querySelectorAll('[data-cmpscope]').forEach(function(b){ b.addEventListener('click', function(){ cmpScope = b.dataset.cmpscope; renderTradeCalendar(); }); });
+    el.querySelectorAll('[data-cmpidx]').forEach(function(b){ b.addEventListener('click', function(){ cmpIndexSel = b.dataset.cmpidx; renderTradeCalendar(); }); });
+  }
 
   // Tiny inline trend line for list rows (Groww holdings-style). Returns an SVG string,
   // not a chart library — consistent with the rest of the dashboard's zero-dependency charts.
