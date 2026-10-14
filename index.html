@@ -3392,17 +3392,10 @@
 <div class="analytics-subpanel" id="apanel-afterexit">
       <div class="td-list-head">
         <div class="td-card-head" style="margin-bottom:0;"><span>After You Sold</span></div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <select id="pxSort" class="td-list-sort">
-            <option value="recent">Sort: Latest exit</option>
-            <option value="missed">Sort: Biggest rise after exit</option>
-            <option value="saved">Sort: Biggest fall after exit</option>
-          </select>
-          <button class="td-list-sort" id="pxRefresh">↻ Refresh prices</button>
-        </div>
+        <button class="td-list-sort" id="pxRefresh">↻ Refresh prices</button>
       </div>
       <div class="td-empty-note" style="text-align:left; padding:0 0 12px;">
-        For every position you closed: where the stock traded a week, 15 days, a month, 6 months and a year after your exit — and today — compared with the price you sold at. A <b>rise</b> after a sale means you left money on the table; a <b>fall</b> means the exit was well timed. Horizons that haven't happened yet show a countdown.
+        Current price versus the price you exited at. <b>Green</b> = the exit was well timed (price moved against your position after you left); <b>red</b> = it kept running without you.
       </div>
       <div id="pxBody"></div>
 </div>
@@ -9925,9 +9918,8 @@
   // (182d) and 1 year (365d). Horizons still in the future show a countdown.
   // Short covers are mirrored: a FALL after the cover is the "missed" move.
   // =====================================================================
-  var PX_HORIZONS = [ {k:'w1', label:'+1 week', short:'1W', days:7}, {k:'d15', label:'+15 days', short:'15D', days:15}, {k:'m1', label:'+1 month', short:'1M', days:30}, {k:'m6', label:'+6 months', short:'6M', days:182}, {k:'y1', label:'+1 year', short:'1Y', days:365} ];
   var PX_LS = 'fv_postexit_cache_v1', PX_TTL = 6*60*60*1000;
-  var pxCache = null, pxErr = {}, pxLoading = false, pxOpen = null, pxLimit = 12, pxSort = 'recent', pxLastHtml = '';
+  var pxCache = null, pxErr = {}, pxLoading = false, pxLastHtml = '';
 
   function pxDisk(){ if(pxCache) return pxCache; try{ pxCache = JSON.parse(localStorage.getItem(PX_LS)||'{}') || {}; }catch(e){ pxCache = {}; } return pxCache; }
   function pxSave(){ try{ localStorage.setItem(PX_LS, JSON.stringify(pxDisk())); }catch(e){} }
@@ -9959,21 +9951,10 @@
     if(pts && pts.length) return {price:pts[pts.length-1][1], live:false, date:pts[pts.length-1][0]};
     return null;
   }
-  // → {price, pct, good} | {pending:days} | {na:true}
-  function pxHorizon(g, pts, days){
-    var today = todayKey(), target = pxAddDays(g.date, days);
-    if(target > today) return {pending: pxDaysBetween(today, target)};
-    if(!pts || !pts.length) return {na:true};
-    var c = pxCloseOnOrBefore(pts, target);
-    if(!c || c[0] < g.date || pxDaysBetween(c[0], target) > 6) return {na:true};   // no data near the target date
-    return pxMove(g, c[1], c[0]);
-  }
   function pxMove(g, price, date){
     var pct = (price-g.exitPrice)/g.exitPrice*100;
     return {price:price, pct:pct, date:date, good: g.dir==='long' ? pct<0 : pct>0, flat: Math.abs(pct)<0.05};
   }
-  function pxSignedMiss(g, now){ return now ? (g.dir==='long' ? now.pct : -now.pct) : -Infinity; }   // + = it kept running without you
-
   async function pxEnsure(force){
     if(pxLoading || !bkReady()) return;
     var exits = pxExits(), need = {}, today = todayKey();
@@ -10004,97 +9985,35 @@
     } finally { pxLoading = false; try{ renderAfterExit(); }catch(e){} }
   }
 
-  function pxChartSvg(g, pts){
-    var end = pxAddDays(g.date, 380), s = (pts||[]).filter(function(p){ return p[0]>=g.date && p[0]<=end; });
-    if(s.length<2) return '<div class="td-empty-note" style="padding:8px 0;">Not enough price history after the exit yet.</div>';
-    var W = 600, H = 160, pl = 8, pr = 8, pt = 14, pb = 20;
-    var t0 = new Date(s[0][0]+'T00:00:00').getTime(), t1 = new Date(s[s.length-1][0]+'T00:00:00').getTime(), span = (t1-t0)||1;
-    var lo = Math.min(g.exitPrice, Math.min.apply(null, s.map(function(p){ return p[1]; }))), hi = Math.max(g.exitPrice, Math.max.apply(null, s.map(function(p){ return p[1]; }))), rng = (hi-lo)||1;
-    var X = function(d){ return pl + (new Date(d+'T00:00:00').getTime()-t0)/span*(W-pl-pr); }, Y = function(v){ return pt + (1-(v-lo)/rng)*(H-pt-pb); };
-    var path = s.map(function(p,i){ return (i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1); }).join(' ');
-    var yx = Y(g.exitPrice).toFixed(1), out = '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Price after exit">';
-    out += '<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+yx+'" y2="'+yx+'" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="4 4"/>';
-    out += '<text x="'+(W-pr)+'" y="'+(parseFloat(yx)-4)+'" text-anchor="end" font-size="10" font-weight="700" fill="var(--accent-dim)">your exit '+bkPx(g.exitPrice)+'</text>';
-    out += '<path d="'+path+'" fill="none" stroke="var(--ink-dim)" stroke-width="1.6" stroke-linejoin="round"/>';
-    PX_HORIZONS.forEach(function(hz){
-      var tgt = pxAddDays(g.date, hz.days); if(tgt > s[s.length-1][0]) return;
-      var c = pxCloseOnOrBefore(s, tgt); if(!c) return;
-      var mv = pxMove(g, c[1], c[0]), col = mv.good ? 'var(--teal)' : 'var(--rose)', x = X(c[0]), y = Y(c[1]);
-      out += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4" fill="'+col+'" stroke="var(--surface)" stroke-width="1.5"/>';
-      out += '<text x="'+x.toFixed(1)+'" y="'+(H-5)+'" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--ink-faint)">'+hz.short+'</text>';
-    });
-    var last = s[s.length-1], lx = X(last[0]), ly = Y(last[1]);
-    out += '<circle cx="'+lx.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="4" fill="var(--ink)"/>';
-    out += '<text x="'+(lx-6).toFixed(1)+'" y="'+(ly-8).toFixed(1)+'" text-anchor="end" font-size="10" font-weight="800" fill="var(--ink)">now '+bkPx(last[1])+'</text>';
-    return out+'</svg>';
-  }
-
   function renderAfterExit(kick){
     var body = document.getElementById('pxBody'); if(!body) return;
     var exits = pxExits(), cache = pxDisk(), today = todayKey();
-    if(!exits.length){ body.innerHTML = '<div class="td-empty-note" style="text-align:left;">No closed trades yet — once you exit a position, you\'ll see here how the stock traded afterwards.</div>'; return; }
+    if(!exits.length){ body.innerHTML = '<div class="td-empty-note" style="text-align:left;">No closed trades yet.</div>'; return; }
     if(kick) pxEnsure(false);
-    // per-exit computed rows
-    var rows = exits.map(function(g){
-      var c = cache[g.ticker], pts = c ? c.pts : null, nowP = pxNowPrice(g.ticker, pts);
-      var now = nowP ? Object.assign(pxMove(g, nowP.price, nowP.date||today), {live:nowP.live}) : null;
-      var hz = {}; PX_HORIZONS.forEach(function(x){ hz[x.k] = pxHorizon(g, pts, x.days); });
-      return {g:g, pts:pts, now:now, hz:hz, err:pxErr[g.ticker]};
-    });
-    if(pxSort==='missed') rows.sort(function(a,b){ return pxSignedMiss(b.g,b.now) - pxSignedMiss(a.g,a.now); });
-    else if(pxSort==='saved') rows.sort(function(a,b){ return pxSignedMiss(a.g,a.now) - pxSignedMiss(b.g,b.now) || 0; });
-    else rows.sort(function(a,b){ return b.g.date.localeCompare(a.g.date); });
-    var sortEl = document.getElementById('pxSort'); if(sortEl && sortEl.value!==pxSort) sortEl.value = pxSort;
-
+    exits.sort(function(a,b){ return b.date.localeCompare(a.date); });
     var fmtPct = function(n){ return (n>=0?'+':'−')+Math.abs(n).toFixed(1)+'%'; };
     var html = '';
-    // summary across all exits
-    var sumRows = PX_HORIZONS.map(function(x){ return {k:x.k, label:x.label}; }).concat([{k:'now', label:'Now'}]).map(function(x){
-      var vals = rows.map(function(r){ return x.k==='now' ? r.now : r.hz[x.k]; }).filter(function(v){ return v && v.pct!==undefined; });
-      if(!vals.length) return '<tr><td>'+x.label+'</td><td colspan="4" style="color:var(--ink-faint);text-align:left;">no data yet</td></tr>';
-      var avg = vals.reduce(function(s,v){ return s+v.pct; },0)/vals.length, kept = vals.filter(function(v){ return !v.good && !v.flat; }).length;
-      var rate = Math.round(kept/vals.length*100);
-      return '<tr><td>'+x.label+'</td><td>'+vals.length+'</td><td>'+fmtPct(avg)+'</td><td class="'+(rate>=50?'bad':'good')+'">'+kept+' / '+vals.length+'</td><td class="'+(rate>=50?'bad':'good')+'">'+rate+'%</td></tr>';
-    }).join('');
-    html += '<div class="px-sum"><div class="px-sum-t">Across all '+rows.length+' exit'+(rows.length===1?'':'s')+'</div><div class="px-tablewrap"><table class="px-table"><tr><th>Horizon</th><th>Exits</th><th>Avg move</th><th>Kept running</th><th>Rate</th></tr>'+sumRows+'</table></div><div class="tcal-cmp-note">“Kept running” = the stock moved further in the direction you were trading after you got out (higher after a sale of a long, lower after a short cover). Avg move is the raw price change versus your exit price.</div></div>';
-    if(!bkReady()) html += '<div class="td-empty-note" style="text-align:left;color:var(--rose);">Price history needs a broker connection (Settings → Broker connection). Showing only what is cached.</div>';
-    else if(pxLoading) html += '<div class="td-empty-note" style="text-align:left;">Loading price history…</div>';
-
-    var shown = rows.slice(0, pxLimit);
-    html += '<div class="px-list">' + shown.map(function(r){
-      var g = r.g, id = g.ticker+'|'+g.date+'|'+g.dir;
-      var dl = new Date(g.date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric', month:'short', year:'numeric'});
-      var errShort = r.err ? (/proxy|reach|network|timeout|took too long/i.test(r.err) ? 'Price feed unavailable' : (/rate/i.test(r.err) ? 'Rate limit — retrying' : (r.err==='no symbol' ? 'Set a symbol' : 'No price data'))) : '';
-      var ver = '<span class="px-verdict na" title="'+escapeHtml(r.err||'')+'">'+(r.err ? errShort : (pxLoading ? 'loading…' : 'no data'))+'</span>';
-      if(r.now){ ver = r.now.flat ? '<span class="px-verdict na">Flat since exit</span>' : '<span class="px-verdict '+(r.now.good?'good':'bad')+'">'+(r.now.good ? 'Good exit' : (g.dir==='long' ? 'Sold early' : 'Covered early'))+' · '+fmtPct(r.now.pct)+'</span>'; }
-      var left = '';
-      if(r.now && !r.now.flat){ var diff = (r.now.price-g.exitPrice)*g.qty*(g.dir==='long'?1:-1); left = '<div class="px-pnl '+(diff<=0?'pos':'neg')+'">'+(diff>0?'Left on table ':'Saved ')+fmtPnl(Math.round(Math.abs(diff)))+' since</div>'; }
-      var cell = function(label, v, isNow){
-        var cls = 'px-cell'+(isNow?' now':'');
-        if(!v) return '<div class="'+cls+' na"><div class="l">'+label+'</div><div class="v">—</div></div>';
-        if(v.pending!==undefined) return '<div class="'+cls+' na"><div class="l">'+label+'</div><div class="v">in '+v.pending+'d</div><div class="c">not yet</div></div>';
-        if(v.na) return '<div class="'+cls+' na"><div class="l">'+label+'</div><div class="v">—</div><div class="c">no data</div></div>';
-        return '<div class="'+cls+'"><div class="l">'+label+(isNow&&v.live?' · live':'')+'</div><div class="v">'+bkPx(v.price)+'</div><div class="c '+(v.flat?'':(v.good?'good':'bad'))+'">'+fmtPct(v.pct)+'</div></div>';
-      };
-      var grid = cell('Now', r.now, true) + PX_HORIZONS.map(function(x){ return cell(x.label, r.hz[x.k], false); }).join('');
-      var open = pxOpen===id;
-      return '<div class="px-card"><div class="px-head" data-pxrow="'+escapeHtml(id)+'"><div style="min-width:0;"><div class="px-name">'+escapeHtml(g.ticker)+(g.dir==='short'?' <span class="pf-tag">SHORT</span>':'')+'</div><div class="px-sub">Exit '+dl+' · '+g.qty+' @ '+bkPx(g.exitPrice)+(g.entryPrice?' · bought '+bkPx(g.entryPrice):'')+'</div></div><div class="px-r">'+ver+left+'</div></div>'
-        + '<div class="px-grid">'+grid+'</div>'
-        + (open ? '<div class="px-chart">'+pxChartSvg(g, r.pts)+'</div>' : '<div class="px-note">Tap the header for the price chart since exit.</div>')
-        + '</div>';
-    }).join('') + '</div>';
-    if(rows.length>pxLimit) html += '<div style="text-align:center;margin-top:12px;"><button class="td-list-sort" data-pxmore="1">Show more ('+(rows.length-pxLimit)+' more)</button></div>';
+    if(!bkReady()) html += '<div class="td-empty-note" style="text-align:left;color:var(--rose);">Current prices need a broker connection (Settings → Broker connection). Showing only what is cached.</div>';
+    else if(pxLoading) html += '<div class="td-empty-note" style="text-align:left;">Loading prices…</div>';
+    html += '<div class="px-tablewrap"><table class="px-table"><tr><th>Stock</th><th>Exit date</th><th>Exit price</th><th>Current</th><th>Change</th></tr>';
+    exits.forEach(function(g){
+      var c = cache[g.ticker], nowP = pxNowPrice(g.ticker, c ? c.pts : null);
+      var dl = new Date(g.date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric', month:'short', year:'2-digit'});
+      var name = escapeHtml(g.ticker)+(g.dir==='short' ? ' <span class="pf-tag">SHORT</span>' : '');
+      var cur = '<td style="color:var(--ink-faint);">—</td><td style="color:var(--ink-faint);">—</td>';
+      if(nowP){
+        var m = pxMove(g, nowP.price, nowP.date||today);
+        cur = '<td>'+bkPx(nowP.price)+'</td><td class="'+(m.flat?'':(m.good?'good':'bad'))+'">'+fmtPct(m.pct)+'</td>';
+      }
+      html += '<tr><td>'+name+'</td><td>'+dl+'</td><td>'+bkPx(g.exitPrice)+'</td>'+cur+'</tr>';
+    });
+    html += '</table></div>';
     if(html===pxLastHtml) return;
     pxLastHtml = html; body.innerHTML = html;
   }
   (function(){
-    var body = document.getElementById('pxBody'), sortEl = document.getElementById('pxSort'), refEl = document.getElementById('pxRefresh');
-    if(body) body.addEventListener('click', function(e){
-      var more = e.target.closest('[data-pxmore]'); if(more){ pxLimit += 12; renderAfterExit(); return; }
-      var row = e.target.closest('[data-pxrow]'); if(row){ var id = row.dataset.pxrow; pxOpen = (pxOpen===id) ? null : id; renderAfterExit(); }
-    });
-    if(sortEl) sortEl.addEventListener('change', function(){ pxSort = sortEl.value; renderAfterExit(); });
-    if(refEl) refEl.addEventListener('click', function(){ pxErr = {}; if(bkReady()){ pxEnsure(true); } renderAfterExit(); showToast(bkReady() ? 'Refreshing price history…' : 'Connect a broker in Settings to load prices.'); });
+    var refEl = document.getElementById('pxRefresh');
+    if(refEl) refEl.addEventListener('click', function(){ pxErr = {}; if(bkReady()){ pxEnsure(true); } renderAfterExit(); showToast(bkReady() ? 'Refreshing prices…' : 'Connect a broker in Settings to load prices.'); });
   })();
 
   // Kept for backward compatibility with existing call sites — now drives the full dashboard.
