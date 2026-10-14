@@ -1089,7 +1089,7 @@
   /* ================= COMPARISON CHART (Zerodha-style overlay) =================
      Shared across Equity Curve + Return on Capital: a "Compare vs index" toggle
      switches those charts into a multi-line view — portfolio plus Nifty 50 /
-     Nifty Midcap 100 / Nifty Smallcap 250, each rebased to % change since the
+     Nifty Midcap 100 / Nifty Smallcap 100, each rebased to % change since the
      start of the visible range, with a toggleable legend, a fixed "Since <date>" summary, and a
      crosshair tooltip that shows every visible series at once (like tapping
      anywhere on a Zerodha/Groww portfolio chart). */
@@ -2983,6 +2983,26 @@
         </div>
         <div class="td-card-sub" id="cmpOvSub" style="margin-bottom:10px; display:block;"></div>
         <div id="cmpOvBody"></div>
+      </div>
+      <div class="td-card" id="dvCard">
+        <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
+          <span>Daily: Portfolio vs Indices</span>
+          <div class="eq-range-toggle" id="dvRange">
+            <button class="eq-range-btn" data-dvr="1m">1M</button>
+            <button class="eq-range-btn" data-dvr="3m">3M</button>
+            <button class="eq-range-btn" data-dvr="6m">6M</button>
+            <button class="eq-range-btn on" data-dvr="all">All</button>
+          </div>
+        </div>
+        <div class="td-card-sub" id="dvSub" style="margin-bottom:10px; display:block;"></div>
+        <div class="td-hero-stats-row" id="dvStats" style="margin:2px 0 12px;"></div>
+        <div style="font-size:12px; font-weight:600; color:var(--ink-dim); margin-bottom:4px;">Cumulative return (%) — portfolio is net P&amp;L (realised + unrealised)</div>
+        <div class="cmp-legend" id="dvLegend" style="display:none;"></div>
+        <div id="dvLine"></div>
+        <div style="font-size:12px; font-weight:600; color:var(--ink-dim); margin:18px 0 4px;">Day by day (%) — you vs <span id="dvPrimName"></span></div>
+        <div id="dvBarsWrap" style="overflow-x:auto; -webkit-overflow-scrolling:touch;"><div id="dvBars"></div></div>
+        <div id="dvDetail" class="td-bd-row" style="margin-top:10px;"></div>
+        <div class="tcal-cmp-note" id="dvNote"></div>
       </div>
       <div class="td-card" id="tdUnrealCard">
         <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
@@ -7253,7 +7273,7 @@
   }
 
   // =====================================================================
-  // BENCHMARK INDICES (Nifty 50 / Midcap 100 / Smallcap 250) — broker candles
+  // BENCHMARK INDICES (Nifty 50 / Midcap 100 / Smallcap 100) — broker candles
   // =====================================================================
   // Daily candles come from the same broker proxy as everything else (Zerodha
   // first, Groww as backup), rebased to "% change since the start of the visible
@@ -7262,14 +7282,14 @@
   var BENCHMARK_TICKERS = {
     nifty50:     { symbols: ['NSE:NIFTY 50', 'NSE:NIFTY'], label: 'Nifty 50', color: '#4A7FB5' },
     midcap100:   { symbols: ['NSE:NIFTY MIDCAP 100', 'NSE:NIFTYMIDCAP100', 'NSE:NIFTY MIDCAP100', 'NSE:MID150BEES', 'NSE:MOM100', 'NSE:MIDCAPETF'], label: 'Nifty Midcap 100', color: 'var(--teal)' },
-    smallcap250: { symbols: ['NSE:NIFTY SMLCAP 250', 'NSE:NIFTY SMALLCAP 250', 'NSE:NIFTYSMLCAP250', 'NSE:NIFTYSMALLCAP250', 'NSE:HDFCSML250', 'NSE:SMALLCAP', 'NSE:MOSMALL250'], label: 'Nifty Smallcap 250', color: 'var(--rose)' }
+    smallcap100: { symbols: ['NSE:NIFTY SMLCAP 100', 'NSE:NIFTY SMALLCAP 100', 'NSE:NIFTYSMLCAP100', 'NSE:NIFTYSMALLCAP100'], label: 'Nifty Smallcap 100', color: 'var(--rose)' }
   };
   const BENCHMARK_CACHE_KEY = 'fv_benchmark_cache_v6';
   const BENCHMARK_CACHE_TTL = 12*60*60*1000;
   let benchmarkMemCache = {};
   let benchQueue = Promise.resolve();
   let benchErr = {};
-  let benchmarkVisible = { nifty50: true, midcap100: true, smallcap250: true };
+  let benchmarkVisible = { nifty50: true, midcap100: true, smallcap100: true };
   let cmpEnabled = { equity: false, roc: false };
 
   // Older app versions saved their index data under earlier cache keys. Reuse it so the comparison
@@ -7618,7 +7638,7 @@
         const rebased = rebaseToPercent(data, p=>p.date, p=>p.close, fromKey, toKey);
         if(rebased.length<2){ benchErr[key] = (benchErr[key]||'') || 'not enough index history inside this date range'; }
         const usedSym = (loadBenchmarkDiskCache()[key]||{}).symbol || '';
-        seriesList[placeholderIdx] = rebased.length<2 ? { key, label: cfg.label+' (no data in range)', color: cfg.color, points: [], visible:false } : { key, label: cfg.label+(/MOM100|HDFCSML250|MID150BEES|MIDCAPETF|SMALLCAP|MOSMALL250/.test(usedSym) ? ' (via ETF)' : ''), color: cfg.color, points: rebased, visible: true };
+        seriesList[placeholderIdx] = rebased.length<2 ? { key, label: cfg.label+' (no data in range)', color: cfg.color, points: [], visible:false } : { key, label: cfg.label+(/MOM100|MID150BEES|MIDCAPETF/.test(usedSym) ? ' (via ETF)' : ''), color: cfg.color, points: rebased, visible: true };
       }
       draw();
     }
@@ -8816,13 +8836,13 @@
   //    reading of each trading day wins, so the stored value ends at the day's close.
   //    Days before recording started are back-filled from the unrealised-P&L snapshots,
   //    but only when the holdings were unchanged between two snapshots (flagged "est.").
-  //  • Index day change: Nifty 50 / Midcap 100 / Smallcap 250 daily closes (same candles the
+  //  • Index day change: Nifty 50 / Midcap 100 / Smallcap 100 daily closes (same candles the
   //    benchmark charts use); today's value comes from a live index quote when available.
   //  • "Beat" = portfolio % change greater than the index % change that day.
   // =====================================================================
-  var CMP_KEYS = ['nifty50','midcap100','smallcap250'];
-  var CMP_SHORT = { nifty50:'Nifty 50', midcap100:'Midcap 100', smallcap250:'Smallcap 250' };
-  var cmpIndexSel = 'smallcap250';      // main index for the Overview comparison (user-switchable)
+  var CMP_KEYS = ['nifty50','midcap100','smallcap100'];
+  var CMP_SHORT = { nifty50:'Nifty 50', midcap100:'Midcap 100', smallcap100:'Smallcap 100' };
+  var cmpIndexSel = 'smallcap100';      // main index for the Overview comparison (user-switchable)
   var cmpScope = 'week';                // Overview card range: 'week' | 'month' | 'all'
   var cmpIdxLive = { date:'', v:{} }, cmpIdxLiveAt = 0, cmpLastSave = 0, cmpLastSig = '';
   var cmpLoading = false, cmpLoadAt = 0;
@@ -8929,7 +8949,7 @@
 
   // ---- Overview card: week / month / all-time view ----
   var cmpOffset = 0, cmpOvLastHtml = '', cmpAllIdx = false, cmpDayLimit = 7;
-  var CMP_LONG = { nifty50:'Nifty 50', midcap100:'Nifty Midcap 100', smallcap250:'Nifty Smallcap 250' };
+  var CMP_LONG = { nifty50:'Nifty 50', midcap100:'Nifty Midcap 100', smallcap100:'Nifty Smallcap 100' };
   try{ var _cp = localStorage.getItem('fv_cmp_primary'); if(_cp && CMP_KEYS.indexOf(_cp)>-1) cmpIndexSel = _cp; }catch(e){}
   function cmpFmtShort(d){ return d.toLocaleDateString('en-IN',{day:'numeric', month:'short'}); }
   function cmpPeriod(){
@@ -8974,6 +8994,7 @@
   function renderCmpOverview(force){
     var card = document.getElementById('cmpOvCard'), body = document.getElementById('cmpOvBody'); if(!card || !body) return;
     cmpEnsureIndices();
+    try{ renderDayVs(); }catch(e){ console.warn('renderDayVs', e); }
     var rows = cmpDailyRows(), per = cmpPeriod(), todayStr = todayKey(), prim = cmpIndexSel;
     var allKeys = Object.keys(rows).sort();
     var keys = per.from ? allKeys.filter(function(d){ return d>=per.from && d<=per.to; }) : allKeys;
@@ -9039,6 +9060,185 @@
       else if(t.dataset.cmpmore){ cmpDayLimit = 999; }
       else if(t.dataset.cmpless){ cmpDayLimit = 7; }
       renderCmpOverview(true);
+    });
+  })();
+
+
+  // =====================================================================
+  // DAILY: PORTFOLIO (NET P&L = REALISED + UNREALISED) vs INDICES
+  //  • Net P&L on a day = cumulative realised P&L (closed trades up to that day)
+  //    + that day's unrealised P&L (latest snapshot on/before the day).
+  //  • Daily portfolio return = (net P&L today − net P&L yesterday) ÷ yesterday's equity
+  //    (net deposits + net P&L). Deposits / withdrawals are therefore NOT counted as
+  //    performance. Days are chained, so the cumulative line is a true time-weighted return.
+  //  • Indices: daily closes (same candles as everywhere else), same start day, same days.
+  // =====================================================================
+  var dvRange = 'all', dvLastSig = '', dvVisible = { portfolio:true, nifty50:true, midcap100:true, smallcap100:true };
+  var dvDetailKey = '';
+  function dvCapList(){
+    var h = (typeof sortedCapitalHistory==='function') ? sortedCapitalHistory() : [];
+    return h.map(function(e){ var a = parseFloat(e.amount)||0; return {date:e.date, amt: e.type==='withdraw' ? -a : a}; })
+      .filter(function(e){ return e.date && e.amt; }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+  }
+  function dvCloseOnOrBefore(pts, d){
+    var lo=0, hi=pts.length-1, ans=-1;
+    while(lo<=hi){ var mid=(lo+hi)>>1; if(pts[mid].date<=d){ ans=mid; lo=mid+1; } else hi=mid-1; }
+    return ans<0 ? null : pts[ans];
+  }
+  // → { days:[{d, real, unr, net, eq, dReal, dUnr, dNet, r, idx:{k:daily%|null}, idxClose:{k:close|null}}], hasIdx:{k:bool} } | null
+  function dvBuild(){
+    var snaps = db.unrealSnaps || {}, sk = Object.keys(snaps).sort();
+    var realTr = (db.trades||[]).filter(function(t){ return t.pnl!==undefined && t.pnl!=='' && !isNaN(parseFloat(t.pnl)) && tradeBasisDate(t); })
+      .map(function(t){ return {date:tradeBasisDate(t), pnl:parseFloat(t.pnl)}; }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+    var start = sk.length ? sk[0] : (realTr.length ? realTr[0].date : '');
+    if(!start) return null;
+    var today = todayKey(), caps = dvCapList();
+    // trading days: Nifty's own dates when loaded (skips exchange holidays), else weekdays
+    var np = cmpIdxPoints('nifty50'), dates = [];
+    if(np && np.length>1){
+      dates = np.map(function(p){ return p.date; }).filter(function(d){ return d>=start && d<=today; });
+      var nl = np[np.length-1].date; if(nl<today){ cmpWeekdays(usnapAddDays(nl,1), today).forEach(function(d){ dates.push(d); }); }
+    } else dates = cmpWeekdays(start, today);
+    if(dates.length<2) return null;
+    var ri=0, realCum=0, si=-1, ci=0, cap=0, prev=null, out=[];
+    var idxPts = {}; CMP_KEYS.forEach(function(k){ var p = cmpIdxPoints(k); idxPts[k] = (p && p.length>1) ? p : null; });
+    dates.forEach(function(d){
+      while(ri<realTr.length && realTr[ri].date<=d){ realCum += realTr[ri].pnl; ri++; }
+      while(si+1<sk.length && sk[si+1]<=d) si++;
+      var unr = si>=0 ? snaps[sk[si]].u : 0;
+      while(ci<caps.length && caps[ci].date<=d){ cap += caps[ci].amt; ci++; }
+      var net = realCum + unr, row = {d:d, real:realCum, unr:unr, net:net, eq:cap+net, dReal:0, dUnr:0, dNet:0, r:0, idx:{}, idxClose:{}};
+      if(prev){
+        row.dReal = realCum-prev.real; row.dUnr = unr-prev.unr; row.dNet = net-prev.net;
+        row.r = prev.eq>0 ? row.dNet/prev.eq*100 : 0;
+      }
+      CMP_KEYS.forEach(function(k){
+        var pts = idxPts[k], close = null;
+        if(pts){
+          var lastD = pts[pts.length-1].date;
+          if(d<=lastD){ var c = dvCloseOnOrBefore(pts, d); close = c ? c.close : null; }
+          else if(d===today && cmpIdxLive.date===today && cmpIdxLive.v[k]!==undefined){ close = pts[pts.length-1].close*(1+cmpIdxLive.v[k]/100); }   // today's live index quote
+        }
+        row.idxClose[k] = close;
+        row.idx[k] = (prev && close!==null && prev.idxClose[k]!==null && prev.idxClose[k]>0) ? (close/prev.idxClose[k]-1)*100 : null;
+      });
+      out.push(row); prev = row;
+    });
+    var hasIdx = {}; CMP_KEYS.forEach(function(k){ hasIdx[k] = out.some(function(r){ return r.idxClose[k]!==null; }); });
+    return {days:out, hasIdx:hasIdx};
+  }
+  function dvSlice(days, range){
+    if(range==='all') return days;
+    var n = range==='1m' ? 30 : (range==='3m' ? 91 : 182), cut = usnapAddDays(todayKey(), -n);
+    var i = 0; while(i<days.length-1 && days[i].d<cut) i++;
+    if(i>0) i--;                       // keep the previous day as the base (0%) point
+    return days.slice(i);
+  }
+  function dvBarsSvg(el, sub, prim, onPick){
+    var rows = sub.slice(1); if(!rows.length){ el.innerHTML = ''; return; }
+    var wrapW = Math.max(300, Math.round((el.parentNode && el.parentNode.clientWidth) || 640));
+    var bw = 4, gap = 3, grp = bw*2+gap, padL = 40, padR = 8, padT = 10, padB = 24;
+    var w = Math.max(wrapW, padL+padR+rows.length*grp), h = 210, plotH = h-padT-padB;
+    var vals = [0.2]; rows.forEach(function(r){ vals.push(Math.abs(r.r)); if(r.idx[prim]!==null) vals.push(Math.abs(r.idx[prim])); });
+    var mx = Math.max.apply(null, vals)*1.1, yFor = function(v){ return padT + (1-(v+mx)/(2*mx))*plotH; }, z = yFor(0);
+    var step = (w-padL-padR)/rows.length, col = BENCHMARK_TICKERS[prim].color;
+    var ticks = cmpNiceTicks(-mx, mx, 4), svg = '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block;">';
+    ticks.forEach(function(v){ var y = yFor(v).toFixed(1); svg += '<line x1="'+padL+'" x2="'+(w-padR)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" opacity="'+(Math.abs(v)<1e-9?0:0.55)+'"/><text x="'+(padL-6)+'" y="'+(+y+3.5)+'" text-anchor="end" font-size="10" font-family="IBM Plex Mono" fill="var(--ink-faint)">'+(v>0?'+':'')+v.toFixed(Math.abs(v)<1?1:0)+'%</text>'; });
+    svg += '<line x1="'+padL+'" x2="'+(w-padR)+'" y1="'+z.toFixed(1)+'" y2="'+z.toFixed(1)+'" stroke="var(--ink-faint)" stroke-dasharray="4,4" opacity=".6"/>';
+    var every = Math.max(1, Math.ceil(rows.length/(w/62)));
+    rows.forEach(function(r, i){
+      var x0 = padL + i*step + (step-grp)/2, bar = function(x, v, fill){ if(v===null) return ''; var y = yFor(v), t = Math.min(y,z), hh = Math.max(1, Math.abs(y-z)); return '<rect x="'+x.toFixed(1)+'" y="'+t.toFixed(1)+'" width="'+bw+'" height="'+hh.toFixed(1)+'" rx="1" fill="'+fill+'"/>'; };
+      svg += bar(x0, r.r, 'var(--accent)') + bar(x0+bw+gap/2, r.idx[prim], col);
+      svg += '<rect class="dv-hit" data-dvd="'+r.d+'" x="'+(padL+i*step).toFixed(1)+'" y="'+padT+'" width="'+step.toFixed(1)+'" height="'+plotH+'" fill="transparent" style="cursor:pointer;"/>';
+      if(i%every===0) svg += '<text x="'+(padL+i*step+step/2).toFixed(1)+'" y="'+(h-8)+'" text-anchor="middle" font-size="9.5" font-family="Inter" fill="var(--ink-faint)">'+new Date(r.d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric', month:'short'})+'</text>';
+    });
+    svg += '<g id="dvSel"></g></svg>';
+    el.innerHTML = svg;
+    el.querySelectorAll('.dv-hit').forEach(function(n){
+      var pick = function(){ onPick(n.dataset.dvd); };
+      n.addEventListener('click', pick); n.addEventListener('mouseenter', pick); n.addEventListener('touchstart', pick, {passive:true});
+    });
+  }
+  function dvDetailHtml(r, prim){
+    if(!r) return '';
+    var dl = new Date(r.d+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short', day:'numeric', month:'short', year:'numeric'});
+    var c = function(n){ return n>=0 ? 'pos' : 'neg'; };
+    var idxLines = CMP_KEYS.map(function(k){ var v = r.idx[k]; return '<span>'+CMP_SHORT[k]+(k===prim?' ★':'')+' <b class="'+(v===null?'':c(v))+'">'+(v===null?'—':cmpPct(v))+'</b></span>'; }).join('');
+    var pv = r.idx[prim], beat = pv===null ? '' : (Math.abs(r.r-pv)<0.005 ? 'Level with' : (r.r>pv ? 'Beat' : 'Lagged')) + ' ' + CMP_SHORT[prim];
+    return '<div class="td-bd-top"><span class="td-bd-name">'+escapeHtml(dl)+'</span><span class="td-bd-pnl '+c(r.dNet)+'">'+fmtPnl(Math.round(r.dNet))+'</span></div>'
+      + '<div class="td-bd-meta">Portfolio <b class="'+c(r.r)+'">'+cmpPct(r.r)+'</b>'+(beat ? ' · '+beat : '')+' · Net P&amp;L cumulative '+fmtPnl(Math.round(r.net))+'</div>'
+      + '<div class="us-break"><span>Realised today <b class="'+c(r.dReal)+'">'+fmtPnl(Math.round(r.dReal))+'</b></span><span>Δ Unrealised <b class="'+c(r.dUnr)+'">'+fmtPnl(Math.round(r.dUnr))+'</b></span></div>'
+      + '<div class="us-break">'+idxLines+'</div>';
+  }
+  function renderDayVs(){
+    var card = document.getElementById('dvCard'); if(!card) return;
+    var lineEl = document.getElementById('dvLine'), barsEl = document.getElementById('dvBars'), legEl = document.getElementById('dvLegend'),
+        statsEl = document.getElementById('dvStats'), subEl = document.getElementById('dvSub'), detEl = document.getElementById('dvDetail'),
+        noteEl = document.getElementById('dvNote'), nameEl = document.getElementById('dvPrimName');
+    card.querySelectorAll('#dvRange .eq-range-btn').forEach(function(b){ b.classList.toggle('on', b.dataset.dvr===dvRange); });
+    var B = dvBuild(), prim = cmpIndexSel;
+    if(nameEl) nameEl.textContent = CMP_LONG[prim];
+    if(!B){
+      var emptySig = 'empty|'+dvRange; if(emptySig===dvLastSig) return; dvLastSig = emptySig;
+      subEl.textContent = ''; statsEl.innerHTML = ''; legEl.style.display = 'none'; barsEl.innerHTML = ''; detEl.innerHTML = ''; noteEl.textContent = '';
+      lineEl.innerHTML = '<div class="td-empty-note">Not enough history yet — this fills in once you have unrealised-P&amp;L snapshots (open the app on trading days) or closed trades with P&amp;L.</div>';
+      return;
+    }
+    var sub = dvSlice(B.days, dvRange), base = sub[0], last = sub[sub.length-1];
+    var sig = [dvRange, prim, JSON.stringify(dvVisible), sub.length, last.d, Math.round(last.net), Math.round(last.eq), CMP_KEYS.map(function(k){ return last.idxClose[k]===null ? 'x' : last.idxClose[k].toFixed(2); }).join(',')].join('|');
+    if(sig===dvLastSig) return; dvLastSig = sig;
+    if(sub.length<2){ lineEl.innerHTML = '<div class="td-empty-note">Need at least two trading days in this range.</div>'; statsEl.innerHTML=''; barsEl.innerHTML=''; detEl.innerHTML=''; return; }
+
+    // cumulative series, re-based to the first day of the visible range
+    var pf = [{date:base.d, v:0}], chain = 1;
+    sub.slice(1).forEach(function(r){ chain *= 1 + r.r/100; pf.push({date:r.d, v:(chain-1)*100}); });
+    var series = [{ key:'portfolio', label:'Portfolio (net P&L)', color:'var(--accent)', points:pf, isPrimary:true, visible:dvVisible.portfolio!==false }];
+    var idxRet = {};
+    CMP_KEYS.forEach(function(k){
+      var b0 = base.idxClose[k], pts = [];
+      if(b0!==null && b0>0) sub.forEach(function(r){ if(r.idxClose[k]!==null) pts.push({date:r.d, v:(r.idxClose[k]/b0-1)*100}); });
+      if(pts.length) idxRet[k] = pts[pts.length-1].v;
+      series.push({ key:k, label:BENCHMARK_TICKERS[k].label, color:BENCHMARK_TICKERS[k].color, points:pts, visible:(pts.length>1 && dvVisible[k]!==false) });
+    });
+    var drawLine = function(){
+      renderComparisonChart(lineEl, series, {height:260, emptyText:'No data yet.'});
+      renderComparisonLegend(legEl, series.filter(function(x){ return x.points.length>1; }), function(key){
+        var sObj = series.find(function(x){ return x.key===key; }); if(!sObj) return;
+        sObj.visible = sObj.visible===false; dvVisible[key] = sObj.visible; drawLine();
+      });
+    };
+    drawLine();
+
+    // headline numbers
+    var dNet = last.net-base.net, dReal = last.real-base.real, dUnr = last.unr-base.unr, pfRet = pf[pf.length-1].v, pr = idxRet[prim];
+    var cls = function(n){ return n>=0 ? 'pos' : 'neg'; };
+    subEl.textContent = sub.length-1+' trading day'+(sub.length-1===1?'':'s')+' · '+base.d+' → '+last.d+' · realised and unrealised both included.';
+    var stat = function(l, v, k){ return '<div class="td-hero-stat"><div class="td-hero-stat-lbl">'+l+'</div><div class="td-hero-stat-val '+(k||'')+'">'+v+'</div></div>'; };
+    statsEl.innerHTML = stat('Net P&L', fmtPnl(Math.round(dNet)), cls(dNet)) + stat('Realised', fmtPnl(Math.round(dReal)), cls(dReal)) + stat('Δ Unrealised', fmtPnl(Math.round(dUnr)), cls(dUnr))
+      + stat('You', cmpPct(pfRet), cls(pfRet)) + stat(CMP_SHORT[prim], pr===undefined ? '—' : cmpPct(pr), pr===undefined ? '' : cls(pr));
+
+    // daily bars + tap/hover detail
+    var rowsByDay = {}; sub.forEach(function(r){ rowsByDay[r.d] = r; });
+    var show = function(d){
+      dvDetailKey = d; var r = rowsByDay[d]; detEl.innerHTML = dvDetailHtml(r, prim);
+      var g = document.getElementById('dvSel'), hit = barsEl.querySelector('.dv-hit[data-dvd="'+d+'"]');
+      if(g && hit) g.innerHTML = '<rect x="'+hit.getAttribute('x')+'" y="'+hit.getAttribute('y')+'" width="'+hit.getAttribute('width')+'" height="'+hit.getAttribute('height')+'" fill="var(--ink-faint)" opacity=".14" pointer-events="none"/>';
+    };
+    dvBarsSvg(barsEl, sub, prim, show);
+    show(rowsByDay[dvDetailKey] && dvDetailKey>base.d ? dvDetailKey : last.d);
+    var wrap = document.getElementById('dvBarsWrap'); if(wrap) wrap.scrollLeft = wrap.scrollWidth;
+
+    var miss = CMP_KEYS.filter(function(k){ return !B.hasIdx[k]; }).map(function(k){ return CMP_SHORT[k]; });
+    noteEl.innerHTML = 'Portfolio daily % = change in (realised + unrealised) P&amp;L ÷ previous day\'s equity (deposits − withdrawals + net P&amp;L); capital added or withdrawn is not counted as performance. '
+      + 'Unrealised P&amp;L is known only from your daily snapshots (started '+(Object.keys(db.unrealSnaps||{}).sort()[0]||'—')+'); on days without a snapshot the last one is carried forward.'
+      + (miss.length ? ' No index data yet for: '+escapeHtml(miss.join(', '))+(bkReady()?'.':' (connect a broker).') : '');
+  }
+  (function(){
+    var card = document.getElementById('dvCard'); if(!card) return;
+    var tg = document.getElementById('dvRange');
+    if(tg) tg.addEventListener('click', function(e){
+      var b = e.target.closest('.eq-range-btn'); if(!b) return;
+      dvRange = b.dataset.dvr; dvLastSig = ''; try{ renderDayVs(); }catch(err){ console.warn(err); }
     });
   })();
 
