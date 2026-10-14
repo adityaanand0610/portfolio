@@ -1477,31 +1477,117 @@
   .tcal-legend{ display:flex; align-items:center; gap:16px; margin-top:16px; font-size:11px; color:var(--ink-faint); flex-wrap:wrap; }
   .tcal-legend-item{ display:flex; align-items:center; gap:6px; }
   .tcal-legend-dot{ width:10px; height:10px; border-radius:3px; }
-  /* ---- Portfolio vs indices (calendar cells, week column, scorecard) ---- */
-  .tcal-cmp{ font-family:'IBM Plex Mono'; font-size:8.5px; font-weight:800; line-height:1; padding:1px 3px; border-radius:4px; white-space:nowrap; }
+  /* ---- Trade calendar layout polish (History → Calendar only) ---- */
+  #historyCalendarView .tcal-cell{ justify-content:center; }
+  #historyCalendarView .tcal-day-num{ position:absolute; top:7px; left:9px; margin:0; align-self:auto; }
+  @media (min-width:700px){
+    #historyCalendarView .tcal-grid, #historyCalendarView .tcal-week-row, #historyCalendarView .tcal-weekday-row{ gap:8px; }
+    #historyCalendarView .tcal-cell{ aspect-ratio:auto; min-height:88px; border-radius:12px; }
+    #historyCalendarView .tcal-week-total{ border-radius:12px; }
+    #historyCalendarView .tcal-pnl-tag{ font-size:13px; }
+    #historyCalendarView .tcal-trade-count{ font-size:9px; }
+    #historyCalendarView .tcal-day-num{ font-size:11.5px; top:8px; left:11px; }
+    #historyCalendarView .tcal-week-total-val{ font-size:12px; }
+    #historyCalendarView .tcal-week-u{ font-size:9.5px; }
+  }
+
+
+  /* ---- Analytics → After Exit ---- */
+  .px-sum{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-md); padding:14px 16px; margin-bottom:14px; }
+  .px-sum-t{ font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px; }
+  .px-tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .px-table{ width:100%; border-collapse:collapse; font-size:12px; }
+  .px-table th{ text-align:right; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); font-weight:700; padding:6px 6px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  .px-table td{ text-align:right; padding:8px 6px; border-bottom:1px solid var(--line); font-family:'IBM Plex Mono'; font-weight:700; white-space:nowrap; }
+  .px-table th:first-child, .px-table td:first-child{ text-align:left; font-family:inherit; }
+  .px-table tr:last-child td{ border-bottom:none; }
+  .px-table .good{ color:var(--teal-dim); } .px-table .bad{ color:var(--rose-dim); }
+  .px-list{ display:flex; flex-direction:column; gap:12px; }
+  .px-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-md); overflow:hidden; }
+  .px-head{ display:flex; justify-content:space-between; gap:12px; padding:14px 16px 10px; cursor:pointer; }
+  .px-name{ font-weight:800; font-size:15px; letter-spacing:.01em; }
+  .px-sub{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-dim); margin-top:3px; font-weight:600; overflow-wrap:anywhere; }
+  .px-r{ text-align:right; flex-shrink:0; }
+  .px-verdict{ display:inline-block; font-size:10.5px; font-weight:800; padding:3px 8px; border-radius:999px; max-width:58vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:top; }
+  .px-verdict.good{ color:var(--teal-dim); background:color-mix(in srgb, var(--teal) 16%, transparent); }
+  .px-verdict.bad{ color:var(--rose-dim); background:color-mix(in srgb, var(--rose) 16%, transparent); }
+  .px-verdict.na{ color:var(--ink-faint); background:var(--surface-raised); }
+  .px-pnl{ font-family:'IBM Plex Mono'; font-size:11.5px; font-weight:700; margin-top:5px; }
+  .px-pnl.pos{ color:var(--teal-dim); } .px-pnl.neg{ color:var(--rose-dim); }
+  .px-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border-top:1px solid var(--line); }
+  @media (min-width:720px){ .px-grid{ grid-template-columns:repeat(6,1fr); } }
+  .px-cell{ background:var(--surface); padding:10px 12px; min-width:0; }
+  .px-cell .l{ font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); font-weight:700; }
+  .px-cell .v{ font-family:'IBM Plex Mono'; font-size:13.5px; font-weight:800; margin-top:4px; }
+  .px-cell .c{ font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; margin-top:2px; color:var(--ink-faint); }
+  .px-cell .c.good{ color:var(--teal-dim); } .px-cell .c.bad{ color:var(--rose-dim); }
+  .px-cell.now{ background:var(--surface-raised); }
+  .px-cell.na .v{ color:var(--ink-faint); font-weight:600; }
+  .px-chart{ padding:10px 14px 14px; border-top:1px solid var(--line); }
+  .px-chart svg{ width:100%; height:auto; display:block; }
+  .px-note{ font-size:10.5px; color:var(--ink-faint); padding:0 16px 12px; }
+
+  /* ---- Overview: Portfolio vs indices ---- */
+  .tcal-cmp{ font-family:'IBM Plex Mono'; font-size:9px; font-weight:800; line-height:1; padding:2px 4px; border-radius:4px; white-space:nowrap; display:inline-block; }
   .tcal-cmp.pos{ color:var(--teal-dim); background:color-mix(in srgb, var(--teal) 16%, transparent); }
   .tcal-cmp.neg{ color:var(--rose-dim); background:color-mix(in srgb, var(--rose) 16%, transparent); }
   .tcal-cmp.tie{ color:var(--ink-faint); background:var(--surface-raised); }
-  .tcal-cell.has-cmp{ cursor:pointer; }
-  .tcal-cell.has-cmp .tcal-trade-count{ display:none; }
-  .tcal-week-cmp{ margin-top:2px; display:flex; flex-direction:column; align-items:center; gap:1px; }
-  .tcal-week-cmp-lbl{ font-size:7px; color:var(--ink-faint); font-weight:700; text-transform:uppercase; letter-spacing:.03em; }
-  .tcal-cmp-card{ margin-top:18px; padding-top:16px; border-top:1px dashed var(--line); }
-  .tcal-cmp-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
-  .tcal-cmp-title{ font-size:12px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-dim); }
-  .tcal-cmp-ctl{ display:flex; gap:6px; flex-wrap:wrap; }
-  .tcal-cmp-ctl .eq-range-btn{ white-space:nowrap; }
-  .tcal-cmp-table{ width:100%; border-collapse:collapse; font-size:12px; }
-  .tcal-cmp-table th{ text-align:right; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); font-weight:700; padding:6px 6px; border-bottom:1px solid var(--line); }
+  .cmpov-nav{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:2px 0 14px; }
+  .cmpov-nav .lbl{ font-family:'Sora'; font-weight:800; font-size:14.5px; text-align:center; flex:1; }
+  .cmpov-nav .lbl small{ display:block; font-family:'Inter'; font-weight:600; font-size:10.5px; color:var(--ink-faint); margin-top:2px; }
+  .cmpov-nav .tcal-nav-btn:disabled{ opacity:.3; cursor:default; }
+  .cmpov-verdict{ display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:var(--radius-sm); background:var(--surface-raised); border:1px solid var(--line); margin-bottom:14px; font-size:12.5px; font-weight:600; line-height:1.4; }
+  .cmpov-verdict .big{ font-family:'IBM Plex Mono'; font-size:20px; font-weight:800; }
+  .cmpov-verdict.pos{ border-color:color-mix(in srgb, var(--teal) 55%, var(--line)); } .cmpov-verdict.neg{ border-color:color-mix(in srgb, var(--rose) 55%, var(--line)); }
+  .cmpov-verdict .pos{ color:var(--teal-dim); } .cmpov-verdict .neg{ color:var(--rose-dim); }
+  .cmpov-rows{ display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+  .cmpov-row{ display:grid; grid-template-columns:minmax(84px,118px) 1fr 66px minmax(78px,auto); align-items:center; gap:10px; }
+  .cmpov-name{ font-size:12.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cmpov-row.me .cmpov-name{ color:var(--accent-dim); font-weight:800; }
+  .cmpov-track{ position:relative; height:12px; border-radius:6px; background:var(--surface-raised); overflow:hidden; }
+  .cmpov-track .mid{ position:absolute; left:50%; top:0; bottom:0; width:1px; background:var(--ink-faint); opacity:.5; z-index:1; }
+  .cmpov-track .fill{ position:absolute; top:0; bottom:0; border-radius:6px; }
+  .cmpov-track .fill.pos{ background:var(--teal); } .cmpov-track .fill.neg{ background:var(--rose); }
+  .cmpov-row.me .cmpov-track .fill{ background:var(--accent); }
+  .cmpov-val{ font-family:'IBM Plex Mono'; font-size:12.5px; font-weight:800; text-align:right; }
+  .cmpov-val.pos, .cmpov-gap.pos{ color:var(--teal-dim); } .cmpov-val.neg, .cmpov-gap.neg{ color:var(--rose-dim); }
+  .cmpov-gap{ font-family:'IBM Plex Mono'; font-size:10.5px; font-weight:700; text-align:right; color:var(--ink-faint); white-space:nowrap; }
+  @media (max-width:520px){ .cmpov-row{ grid-template-columns:96px 1fr 60px; gap:8px; } .cmpov-name{ font-size:12px; } .cmpov-gap{ display:none; } .tcal-cmp-table .c-tie{ display:none; } .tcal-cmp-table{ min-width:0; } .tcal-cmp-table th, .tcal-cmp-table td{ padding-left:4px; padding-right:4px; } .tcal-cmp-table td:first-child{ white-space:nowrap; } }
+  .cmpov-sec{ display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin:6px 0 10px; }
+  .cmpov-sec .t{ font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); }
+  .cmpov-chips{ display:flex; gap:6px; flex-wrap:wrap; }
+  .cmpov-chips .eq-range-btn{ white-space:nowrap; }
+  .cmpov-wd, .cmpov-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+  .cmpov-wd span{ text-align:center; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); }
+  .cmpov-wd{ margin-bottom:6px; }
+  .cmpov-tile{ position:relative; min-height:68px; border-radius:10px; border:1px solid var(--line); background:var(--surface); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:16px 2px 6px; transition:transform .12s var(--ease), box-shadow .12s var(--ease); }
+  .cmpov-tile.blank{ background:transparent; border-color:transparent; }
+  .cmpov-tile.has{ cursor:pointer; } .cmpov-tile.has:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+  .cmpov-tile.beat{ border-color:var(--teal); background:color-mix(in srgb, var(--teal) 10%, var(--surface)); }
+  .cmpov-tile.lag{ border-color:var(--rose); background:color-mix(in srgb, var(--rose) 10%, var(--surface)); }
+  .cmpov-tile.today{ box-shadow:inset 0 0 0 2px var(--ink); }
+  .cmpov-tile.sel{ box-shadow:inset 0 0 0 2px var(--accent); border-color:var(--accent); }
+  .cmpov-tile .d{ position:absolute; top:6px; left:8px; font-size:10.5px; font-weight:700; color:var(--ink-faint); }
+  .cmpov-tile .p{ font-family:'IBM Plex Mono'; font-size:12.5px; font-weight:800; }
+  .cmpov-tile .p.pos{ color:var(--teal-dim); } .cmpov-tile .p.neg{ color:var(--rose-dim); } .cmpov-tile .p.na{ color:var(--ink-faint); font-weight:600; }
+  .cmpov-tile.future{ opacity:.45; }
+  @media (min-width:700px){ .cmpov-tile{ min-height:78px; } .cmpov-grid, .cmpov-wd{ gap:8px; } }
+  .cmpov-tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tcal-cmp-table{ width:100%; border-collapse:collapse; font-size:12px; min-width:380px; }
+  .tcal-cmp-table th{ text-align:right; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); font-weight:700; padding:6px 6px; border-bottom:1px solid var(--line); white-space:nowrap; }
   .tcal-cmp-table th:first-child, .tcal-cmp-table td:first-child{ text-align:left; }
   .tcal-cmp-table td{ text-align:right; padding:9px 6px; border-bottom:1px solid var(--line); font-family:'IBM Plex Mono'; font-weight:700; }
   .tcal-cmp-table td:first-child{ font-family:inherit; font-weight:700; }
   .tcal-cmp-table td.pos{ color:var(--teal-dim); } .tcal-cmp-table td.neg{ color:var(--rose-dim); }
   .tcal-cmp-table tr:last-child td{ border-bottom:none; }
   .tcal-cmp-note{ font-size:10.5px; color:var(--ink-faint); margin-top:8px; line-height:1.5; }
-  .tcal-cmp-day{ display:grid; grid-template-columns:1fr auto auto; gap:4px 12px; font-family:'IBM Plex Mono'; font-size:11.5px; align-items:center; }
+  .tcal-cmp-day{ display:grid; grid-template-columns:1fr auto auto; gap:6px 14px; font-family:'IBM Plex Mono'; font-size:11.5px; align-items:center; }
   .tcal-cmp-day .h{ font-size:9.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; font-family:inherit; font-weight:700; }
+  .tcal-cmp-day > span{ text-align:right; } .tcal-cmp-day > span:nth-child(3n+1){ text-align:left; }
+  .tcal-cmp-day > span:nth-child(3n+1):not(.h){ font-family:'Inter'; font-weight:600; font-size:12px; }
   .tcal-cmp-day .pos{ color:var(--teal-dim); font-weight:700; } .tcal-cmp-day .neg{ color:var(--rose-dim); font-weight:700; }
+  .cmpov-day{ margin-top:12px; padding:12px 14px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--surface-raised); }
+  .cmpov-day .hd{ font-weight:800; font-size:12.5px; margin-bottom:8px; }
   .tcal-selected-trades{ margin-top:16px; }
   .tcal-selected-label{ display:flex; align-items:center; justify-content:space-between; font-size:11px; font-weight:700; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px; }
   .tcal-selected-label .tcal-selected-total{ font-family:'IBM Plex Mono'; text-transform:none; letter-spacing:0; font-size:12.5px; }
@@ -2903,6 +2989,18 @@
         <div class="td-card-sub" id="tdOpenAllocSub" style="margin-bottom:8px; display:block;"></div>
         <div id="tdOpenAllocList"></div>
       </div>
+      <div class="td-card" id="cmpOvCard">
+        <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
+          <span>Portfolio vs Indices</span>
+          <div class="eq-range-toggle" id="cmpOvScope">
+            <button class="eq-range-btn on" data-scope="week">Week</button>
+            <button class="eq-range-btn" data-scope="month">Month</button>
+            <button class="eq-range-btn" data-scope="all">All time</button>
+          </div>
+        </div>
+        <div class="td-card-sub" id="cmpOvSub" style="margin-bottom:10px; display:block;"></div>
+        <div id="cmpOvBody"></div>
+      </div>
       <div class="td-card" id="tdUnrealCard">
         <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
           <span>Unrealised P&amp;L History</span>
@@ -3186,10 +3284,7 @@
             <div class="tcal-legend-item"><span class="tcal-legend-dot" style="background:var(--rose-bg); border:1px solid var(--rose);"></span>Loss day</div>
             <div class="tcal-legend-item"><span class="tcal-legend-dot" style="background:var(--surface); border:1px solid var(--line);"></span>No trades</div>
             <div class="tcal-legend-item">Darker = bigger day</div>
-            <div class="tcal-legend-item"><span class="tcal-cmp pos" style="position:static;">▲0.4</span>beat the index (pp)</div>
-            <div class="tcal-legend-item"><span class="tcal-cmp neg" style="position:static;">▼0.4</span>lagged the index</div>
           </div>
-          <div class="tcal-cmp-card" id="tcalCmpCard"></div>
           <div class="tcal-selected-trades" id="tcalSelectedTrades"></div>
         </div>
       </div>
@@ -3201,6 +3296,7 @@
 <button class="trade-subnav-btn" data-apanel="risk">Risk &amp; Discipline</button>
 <button class="trade-subnav-btn" data-apanel="periods">Periods</button>
 <button class="trade-subnav-btn" data-apanel="lessons">Lessons</button>
+<button class="trade-subnav-btn" data-apanel="afterexit">After Exit</button>
 </div>
 <div class="analytics-subpanel active" id="apanel-strategy">
 <div class="tr-group"><div class="tr-seg"><button class="tr-seg-btn on" data-g="g5" data-p="0">Ticker</button><button class="tr-seg-btn" data-g="g5" data-p="1">Setup</button><button class="tr-seg-btn" data-g="g5" data-p="2">Timeframe</button><button class="tr-seg-btn" data-g="g5" data-p="3">Position size</button></div><div class="tr-pane on" data-g="g5" data-p="0">
@@ -3309,6 +3405,23 @@
         Every "One lesson" note from your closed trades is grouped here — repeats are merged into one card with a count, so the mistakes you keep making rise to the top instead of getting buried in the log.
       </div>
       <div id="lessonsList"></div>
+</div>
+<div class="analytics-subpanel" id="apanel-afterexit">
+      <div class="td-list-head">
+        <div class="td-card-head" style="margin-bottom:0;"><span>After You Sold</span></div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <select id="pxSort" class="td-list-sort">
+            <option value="recent">Sort: Latest exit</option>
+            <option value="missed">Sort: Biggest rise after exit</option>
+            <option value="saved">Sort: Biggest fall after exit</option>
+          </select>
+          <button class="td-list-sort" id="pxRefresh">↻ Refresh prices</button>
+        </div>
+      </div>
+      <div class="td-empty-note" style="text-align:left; padding:0 0 12px;">
+        For every position you closed: where the stock traded a week, 15 days, a month, 6 months and a year after your exit — and today — compared with the price you sold at. A <b>rise</b> after a sale means you left money on the table; a <b>fall</b> means the exit was well timed. Horizons that haven't happened yet show a countdown.
+      </div>
+      <div id="pxBody"></div>
 </div>
 </div>
 
@@ -8201,6 +8314,7 @@
     try{ tdHeroRefresh(); }catch(e){}
     try{ if(tdAllocRefresh) tdAllocRefresh(); }catch(e){}
     try{ recordUnrealSnapshot(); renderUnrealTracker(); }catch(e){}
+    try{ renderCmpOverview(); }catch(e){}
   }
   function renderTradeOverview(){
     tdOverviewFullAt = Date.now();
@@ -8210,6 +8324,7 @@
     const m = computeTradeMetrics(trades);
     recordUnrealSnapshot();
     renderUnrealTracker();
+    try{ renderCmpOverview(); }catch(e){ console.warn(e); }
 
     // ---- Groww-style hero card: big net P&L + today/week/capital-deployed row ----
     const renderHero = function(){
@@ -8554,7 +8669,6 @@
     const daysInMonth = new Date(y,mo+1,0).getDate();
     const byDay = tradesByDayKey();
     const todayKeyStr = todayKey();
-    let cmpRows = {}; try{ cmpRows = cmpDailyRows(); }catch(e){ console.warn(e); }
 
     // ---- Pass 1: compute per-day P&L for this month + month-level stats,
     // so day-cell heat intensity can scale relative to the month's biggest day. ----
@@ -8646,30 +8760,26 @@
         }
         const daySnap = snaps[c.key];
         if(daySnap) cls += ' has-snap';
-        const cmpTag = cmpCellTag(cmpRows[c.key]);
-        if(cmpTag) cls += ' has-cmp';
         if(c.key===todayKeyStr) cls += ' is-today';
         if(c.key===tcalSelectedKey) cls += ' is-selected';
         html += `<div class="${cls}" data-daykey="${c.key}"${styleAttr}>
           ${daySnap?`<span class="tcal-snap-dot" title="Unrealised ${fmtCompactPnl(daySnap.u)}"></span>`:''}
           <div class="tcal-day-num">${c.d}</div>
           ${stat.hasPnl?`<div class="tcal-pnl-tag">${fmtPnl(Math.round(stat.pnl))}</div><div class="tcal-trade-count">${stat.count} trade${stat.count===1?'':'s'}</div>`:(stat.count?`<div class="tcal-pnl-tag" style="color:var(--ink-faint);">${stat.count}T</div>`:'')}
-          ${cmpTag}
         </div>`;
       });
       const wtCls = weekHasPnl ? (weekTotal>=0?'pos':'neg') : '';
-      html += `<div class="tcal-week-total"><div class="tcal-week-total-lbl">Wk</div><div class="tcal-week-total-val ${wtCls}">${weekHasPnl?fmtPnl(Math.round(weekTotal)):'—'}</div>${weekSnap?`<div class="tcal-week-u ${weekSnap.u>=0?'pos':'neg'}" title="Unrealised at week end">U ${fmtCompactPnl(weekSnap.u)}</div>`:''}${cmpWeekTag(week.filter(c=>!c.empty).map(c=>c.key), cmpRows)}</div>`;
+      html += `<div class="tcal-week-total"><div class="tcal-week-total-lbl">Wk</div><div class="tcal-week-total-val ${wtCls}">${weekHasPnl?fmtPnl(Math.round(weekTotal)):'—'}</div>${weekSnap?`<div class="tcal-week-u ${weekSnap.u>=0?'pos':'neg'}" title="Unrealised at week end">U ${fmtCompactPnl(weekSnap.u)}</div>`:''}</div>`;
       html += '</div>';
     }
     gridEl.innerHTML = html;
-    gridEl.querySelectorAll('.tcal-cell.has-trades, .tcal-cell.has-snap, .tcal-cell.has-cmp').forEach(cell=>{
+    gridEl.querySelectorAll('.tcal-cell.has-trades, .tcal-cell.has-snap').forEach(cell=>{
       cell.addEventListener('click', ()=>{
         const key = cell.dataset.daykey;
         tcalSelectedKey = (tcalSelectedKey===key) ? null : key;
         renderTradeCalendar();
       });
     });
-    try{ renderCmpCard(cmpRows); }catch(e){ console.warn(e); }
     renderTcalSelectedTrades();
   }
   function renderTcalSelectedTrades(){
@@ -8681,7 +8791,6 @@
     const dayTotal = withPnl.reduce((s,t)=>s+parseFloat(t.pnl),0);
     const totalCls = withPnl.length ? (dayTotal>=0?'pos':'neg') : '';
     const dateLabel = new Date(tcalSelectedKey+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short', day:'numeric', month:'short', year:'numeric'});
-    let cmpDayHtml = ''; try{ cmpDayHtml = cmpDayDetailHtml(tcalSelectedKey); }catch(e){}
     const _snaps = db.unrealSnaps || {}, _sk = Object.keys(_snaps).sort();
     let snapHtml = '';
     if(_snaps[tcalSelectedKey]){
@@ -8689,7 +8798,7 @@
       const dlt = pi>=0 ? sn.u-_snaps[_sk[pi]].u : null;
       snapHtml = `<div class="td-bd-row"><div class="td-bd-top"><span class="td-bd-name">Unrealised snapshot</span><span class="trade-pnl ${sn.u>=0?'pos':'neg'}">${fmtPnl(Math.round(sn.u))}</span></div><div class="td-bd-meta">${sn.n} open position${sn.n===1?'':'s'}${dlt!==null?' · '+(dlt>=0?'+':'−')+fmtCompactPnl(Math.abs(dlt)).replace(/^[+-]/,'')+' vs previous snapshot':''}</div></div>`;
     }
-    el.innerHTML = cmpDayHtml + snapHtml + `<div class="tcal-selected-label"><span>${dateLabel} · ${dayTrades.length} trade${dayTrades.length===1?'':'s'}</span>${withPnl.length?`<span class="tcal-selected-total ${totalCls}">${fmtPnl(Math.round(dayTotal))}</span>`:''}</div>` + dayTrades.map(t=>{
+    el.innerHTML = snapHtml + `<div class="tcal-selected-label"><span>${dateLabel} · ${dayTrades.length} trade${dayTrades.length===1?'':'s'}</span>${withPnl.length?`<span class="tcal-selected-total ${totalCls}">${fmtPnl(Math.round(dayTotal))}</span>`:''}</div>` + dayTrades.map(t=>{
       const n = parseFloat(t.pnl);
       const cls = isNaN(n)?'':(n>=0?'pos':'neg');
       const dirTag = t.direction==='short'?'Short':'Long';
@@ -8738,7 +8847,7 @@
   var CMP_KEYS = ['nifty50','midcap100','smallcap250'];
   var CMP_SHORT = { nifty50:'Nifty 50', midcap100:'Midcap 100', smallcap250:'Smallcap 250' };
   var cmpIndexSel = 'nifty50';          // index shown inside calendar cells + week column
-  var cmpScope = 'month';               // scorecard range: 'month' (calendar month shown) | 'all'
+  var cmpScope = 'week';                // Overview card range: 'week' | 'month' | 'all'
   var cmpIdxLive = { date:'', v:{} }, cmpIdxLiveAt = 0, cmpLastSave = 0, cmpLastSig = '';
   var cmpLoading = false, cmpLoadAt = 0;
 
@@ -8824,82 +8933,152 @@
   }
   function cmpVerdict(diff){ return Math.abs(diff)<0.005 ? 'tie' : (diff>0 ? 'pos' : 'neg'); }
   function cmpFmtPct(n){ return (n>=0?'+':'−')+Math.abs(n).toFixed(2)+'%'; }
-  function cmpCellTag(row){
-    if(!row || row.idx[cmpIndexSel]===null || row.idx[cmpIndexSel]===undefined) return '';
-    var diff = row.p - row.idx[cmpIndexSel], v = cmpVerdict(diff);
-    return '<div class="tcal-cmp '+v+'" title="Portfolio '+cmpFmtPct(row.p)+' vs '+CMP_SHORT[cmpIndexSel]+' '+cmpFmtPct(row.idx[cmpIndexSel])+(row.src==='snap'?' (est.)':'')+'">'+(v==='tie'?'=':(v==='pos'?'▲':'▼'))+Math.abs(diff).toFixed(1)+'</div>';
-  }
-  function cmpWeekTag(keys, rows){
-    var pf = 1, ix = 1, n = 0;
-    keys.forEach(function(k){ var r = rows[k]; if(!r || r.idx[cmpIndexSel]===null || r.idx[cmpIndexSel]===undefined) return; pf *= 1+r.p/100; ix *= 1+r.idx[cmpIndexSel]/100; n++; });
-    if(!n) return '';
-    var diff = (pf-1)*100 - (ix-1)*100, v = cmpVerdict(diff);
-    return '<div class="tcal-week-cmp"><span class="tcal-cmp '+v+'" title="Week (compounded over '+n+' day'+(n===1?'':'s')+'): portfolio '+cmpFmtPct((pf-1)*100)+' vs '+CMP_SHORT[cmpIndexSel]+' '+cmpFmtPct((ix-1)*100)+'">'+(v==='tie'?'=':(v==='pos'?'▲':'▼'))+Math.abs(diff).toFixed(1)+'</span><span class="tcal-week-cmp-lbl">vs '+CMP_SHORT[cmpIndexSel].replace('Nifty ','N')+'</span></div>';
-  }
-  function cmpDayDetailHtml(key){
-    var row = cmpDailyRows()[key]; if(!row) return '';
+  function cmpDayDetailBody(row){
     var line = function(label, v, diff){
       return '<span>'+escapeHtml(label)+'</span><span>'+(v===null||v===undefined?'—':cmpFmtPct(v))+'</span><span class="'+(diff===null?'':cmpVerdict(diff))+'">'+(diff===null?'':(diff>=0?'+':'−')+Math.abs(diff).toFixed(2)+' pp')+'</span>';
     };
-    var body = '<span class="h">1-day change</span><span class="h">%</span><span class="h">Portfolio vs</span>' + line('Your portfolio', row.p, null);
+    var body = '<span class="h">1-day change</span><span class="h">%</span><span class="h">You vs</span>' + line('Your portfolio', row.p, null);
     CMP_KEYS.forEach(function(k){ var v = row.idx[k]; body += line(CMP_SHORT[k], v, (v===null||v===undefined) ? null : row.p - v); });
-    return '<div class="td-bd-row"><div class="td-bd-top"><span class="td-bd-name">Portfolio vs indices'+(row.src==='snap'?' · estimated':'')+'</span></div><div class="tcal-cmp-day" style="margin-top:8px;">'+body+'</div>'
-      + (row.src==='snap' ? '<div class="td-bd-meta">Derived from unrealised-P&amp;L snapshots'+(row.from?' since '+row.from:'')+' (holdings unchanged between them).</div>' : '')+'</div>';
+    return '<div class="tcal-cmp-day">'+body+'</div>'
+      + (row.src==='snap' ? '<div class="tcal-cmp-note">Estimated from unrealised-P&amp;L snapshots'+(row.from?' since '+row.from:'')+' (holdings unchanged between them).</div>' : '');
   }
 
-  function cmpTally(rows, from, to){
-    var res = {}; CMP_KEYS.forEach(function(k){ res[k] = {beat:0, lag:0, tie:0, n:0, ex:0}; });
-    Object.keys(rows).forEach(function(d){
-      if(from && d<from) return; if(to && d>to) return;
-      var r = rows[d];
-      CMP_KEYS.forEach(function(k){
-        var v = r.idx[k]; if(v===null || v===undefined) return;
-        var diff = r.p - v, t = res[k]; t.n++; t.ex += diff;
-        var vd = cmpVerdict(diff); if(vd==='pos') t.beat++; else if(vd==='neg') t.lag++; else t.tie++;
-      });
-    });
-    return res;
-  }
   function cmpEnsureIndices(){
     if(!bkReady() || cmpLoading || Date.now()-cmpLoadAt < 300000) return;
     cmpLoading = true; cmpLoadAt = Date.now();
     Promise.all(CMP_KEYS.map(function(k){ return ensureBenchmarkLoaded(k).catch(function(){}); })).then(function(){
-      cmpLoading = false;
-      try{ if(document.getElementById('historyCalendarView').classList.contains('active')) renderTradeCalendar(); }catch(e){}
+      cmpLoading = false; try{ renderCmpOverview(true); }catch(e){}
     }).catch(function(){ cmpLoading = false; });
   }
-  function renderCmpCard(rows){
-    var el = document.getElementById('tcalCmpCard'); if(!el) return;
-    cmpEnsureIndices();
-    var y = tcalViewDate.getFullYear(), mo = tcalViewDate.getMonth();
-    var from = null, to = null;
-    if(cmpScope==='month'){ var pre = y+'-'+String(mo+1).padStart(2,'0'); from = pre+'-01'; to = pre+'-31'; }
-    var t = cmpTally(rows, from, to);
-    var anyIdx = CMP_KEYS.some(function(k){ return t[k].n>0; });
-    var haveData = Object.keys(rows).some(function(d){ return (!from || d>=from) && (!to || d<=to); });
-    var seg = function(attr, val, label, cur){ return '<button class="eq-range-btn'+(cur===val?' on':'')+'" data-'+attr+'="'+val+'">'+label+'</button>'; };
-    var head = '<div class="tcal-cmp-head"><div class="tcal-cmp-title">Portfolio vs indices · daily scorecard</div><div class="tcal-cmp-ctl">'
-      + seg('cmpscope','month','This month',cmpScope) + seg('cmpscope','all','All time',cmpScope) + '</div></div>'
-      + '<div class="tcal-cmp-head" style="margin-bottom:8px;"><div class="tcal-cmp-title" style="font-weight:700;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ink-faint);">Show on calendar:</div><div class="tcal-cmp-ctl">'
-      + CMP_KEYS.map(function(k){ return seg('cmpidx',k,CMP_SHORT[k],cmpIndexSel); }).join('') + '</div></div>';
-    var body;
-    if(!anyIdx){
-      body = '<div class="td-empty-note" style="text-align:left;padding:6px 0;">'+(haveData
-        ? (bkReady() ? 'Loading index data…' : 'Portfolio days are recorded, but index data needs a broker connection (Settings → Broker connection).')
-        : 'Nothing to compare yet. Open the app on trading days with live prices on — each day\'s portfolio change is saved automatically and compared with Nifty 50, Midcap 100 and Smallcap 250.')+'</div>';
-    } else {
-      body = '<table class="tcal-cmp-table"><tr><th>Index</th><th>Beat it</th><th>Lagged</th><th>Tie</th><th>Days</th><th>Beat %</th><th>Avg pp</th></tr>'
-        + CMP_KEYS.map(function(k){
-          var r = t[k]; if(!r.n) return '<tr><td>'+CMP_SHORT[k]+'</td><td colspan="6" style="color:var(--ink-faint);">no data</td></tr>';
-          var rate = Math.round(r.beat/r.n*100), avg = r.ex/r.n;
-          return '<tr><td>'+CMP_SHORT[k]+'</td><td class="pos">'+r.beat+'</td><td class="neg">'+r.lag+'</td><td>'+r.tie+'</td><td>'+r.n+'</td><td class="'+(rate>=50?'pos':'neg')+'">'+rate+'%</td><td class="'+(avg>=0?'pos':'neg')+'">'+(avg>=0?'+':'−')+Math.abs(avg).toFixed(2)+'</td></tr>';
-        }).join('') + '</table>'
-        + '<div class="tcal-cmp-note">“Beat it” = days your portfolio\'s 1-day % change was higher than the index\'s; “Lagged” = days the index was higher. Avg pp = average daily gap in percentage points. Tap a calendar day for the exact numbers.</div>';
+
+  // ---- Overview card: week / month / all-time view ----
+  var cmpOffset = 0, cmpOvSel = null, cmpOvLastHtml = '';
+  function cmpFmtShort(d){ return d.toLocaleDateString('en-IN',{day:'numeric', month:'short'}); }
+  function cmpPeriod(){
+    var now = new Date(), y = now.getFullYear(), m = now.getMonth(), dd = now.getDate();
+    if(cmpScope==='week'){
+      var d = new Date(y, m, dd + cmpOffset*7), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay()+6)%7));
+      var fri = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate()+4);
+      return { from:todayKey(mon), to:todayKey(fri), label:cmpFmtShort(mon)+' – '+cmpFmtShort(fri), sub: cmpOffset===0 ? 'This week' : (cmpOffset===-1 ? 'Last week' : Math.abs(cmpOffset)+' weeks ago') };
     }
-    el.innerHTML = head + body;
-    el.querySelectorAll('[data-cmpscope]').forEach(function(b){ b.addEventListener('click', function(){ cmpScope = b.dataset.cmpscope; renderTradeCalendar(); }); });
-    el.querySelectorAll('[data-cmpidx]').forEach(function(b){ b.addEventListener('click', function(){ cmpIndexSel = b.dataset.cmpidx; renderTradeCalendar(); }); });
+    if(cmpScope==='month'){
+      var first = new Date(y, m+cmpOffset, 1), last = new Date(y, m+cmpOffset+1, 0);
+      return { from:todayKey(first), to:todayKey(last), label:first.toLocaleDateString('en-IN',{month:'long', year:'numeric'}), sub: cmpOffset===0 ? 'This month' : (cmpOffset===-1 ? 'Last month' : Math.abs(cmpOffset)+' months ago') };
+    }
+    return { from:null, to:null, label:'All recorded days', sub:'' };
   }
+  function cmpWeekdays(from, to){
+    var out = [], d = new Date(from+'T00:00:00'), e = new Date(to+'T00:00:00');
+    for(; d<=e; d.setDate(d.getDate()+1)){ var w = d.getDay(); if(w>0 && w<6) out.push(todayKey(d)); }
+    return out;
+  }
+  function cmpAgg(rows, keys){
+    var per = {}, pf = 1, n = 0;
+    CMP_KEYS.forEach(function(k){ per[k] = {pf:1, ix:1, n:0, beat:0, lag:0, tie:0, ex:0}; });
+    keys.forEach(function(d){
+      var r = rows[d]; if(!r) return; pf *= 1 + r.p/100; n++;
+      CMP_KEYS.forEach(function(k){
+        var v = r.idx[k]; if(v===null || v===undefined) return;
+        var s = per[k], diff = r.p - v, vd = cmpVerdict(diff);
+        s.pf *= 1 + r.p/100; s.ix *= 1 + v/100; s.n++; s.ex += diff;
+        if(vd==='pos') s.beat++; else if(vd==='neg') s.lag++; else s.tie++;
+      });
+    });
+    CMP_KEYS.forEach(function(k){ var s = per[k]; s.ret = s.n ? (s.ix-1)*100 : null; s.pfRet = s.n ? (s.pf-1)*100 : null; s.gap = s.n ? s.pfRet - s.ret : null; });
+    return { n:n, pf:(pf-1)*100, per:per };
+  }
+  function cmpTileHtml(key, rows, todayStr){
+    var r = rows[key], dnum = parseInt(key.slice(8),10), cls = 'cmpov-tile', inner = '';
+    var future = key > todayStr;
+    if(r){
+      cls += ' has';
+      var v = r.idx[cmpIndexSel], tag = '';
+      if(v!==null && v!==undefined){ var diff = r.p - v, vd = cmpVerdict(diff); if(vd==='pos') cls += ' beat'; else if(vd==='neg') cls += ' lag'; tag = '<span class="tcal-cmp '+vd+'">'+(vd==='tie'?'=':(vd==='pos'?'▲':'▼'))+Math.abs(diff).toFixed(1)+'</span>'; }
+      inner = '<span class="p '+(r.p>=0?'pos':'neg')+'">'+(r.p>=0?'+':'−')+Math.abs(r.p).toFixed(2)+'%</span>'+tag;
+    } else inner = '<span class="p na">—</span>';
+    if(future) cls += ' future';
+    if(key===todayStr) cls += ' today';
+    if(key===cmpOvSel) cls += ' sel';
+    return '<div class="'+cls+'" '+(r?'data-cmpday="'+key+'"':'')+'><span class="d">'+dnum+'</span>'+inner+'</div>';
+  }
+  function renderCmpOverview(force){
+    var card = document.getElementById('cmpOvCard'), body = document.getElementById('cmpOvBody'); if(!card || !body) return;
+    cmpEnsureIndices();
+    var rows = cmpDailyRows(), per = cmpPeriod(), todayStr = todayKey();
+    var allKeys = Object.keys(rows).sort();
+    var keys = per.from ? allKeys.filter(function(d){ return d>=per.from && d<=per.to; }) : allKeys;
+    var agg = cmpAgg(rows, keys);
+    var seg = function(attr, val, label, cur){ return '<button class="eq-range-btn'+(cur===val?' on':'')+'" data-'+attr+'="'+val+'">'+label+'</button>'; };
+    var scopeEl = document.getElementById('cmpOvScope');
+    if(scopeEl) scopeEl.querySelectorAll('.eq-range-btn').forEach(function(b){ b.classList.toggle('on', b.dataset.scope===cmpScope); });
+    var sub = document.getElementById('cmpOvSub');
+    var wdKeys = per.from ? cmpWeekdays(per.from, per.to) : [];
+    var elapsed = wdKeys.filter(function(d){ return d<=todayStr; }).length;
+    if(sub) sub.textContent = 'Compounded 1-day changes over the days your portfolio was recorded'+(per.from ? ' ('+keys.length+' of '+elapsed+' weekday'+(elapsed===1?'':'s')+' so far)' : ' ('+keys.length+' day'+(keys.length===1?'':'s')+')')+'; each index uses the same days.';
+
+    var html = '';
+    if(per.from){
+      html += '<div class="cmpov-nav"><button class="tcal-nav-btn" data-cmpnav="-1" aria-label="Previous">‹</button><div class="lbl">'+escapeHtml(per.label)+'<small>'+escapeHtml(per.sub)+'</small></div><button class="tcal-nav-btn" data-cmpnav="1" aria-label="Next"'+(cmpOffset>=0?' disabled':'')+'>›</button></div>';
+    }
+    var haveIdx = CMP_KEYS.some(function(k){ return agg.per[k].n>0; });
+    if(!keys.length){
+      html += '<div class="td-empty-note" style="text-align:left;padding:8px 0;">'+(per.from ? 'No portfolio days recorded in this period yet.' : 'Nothing recorded yet.')+' Open the app on trading days with live prices on — each day\'s portfolio change is saved automatically and compared with Nifty 50, Midcap 100 and Smallcap 250.</div>';
+    } else if(!haveIdx){
+      html += '<div class="td-empty-note" style="text-align:left;padding:8px 0;">'+(bkReady() ? 'Loading index data…' : 'Portfolio days are recorded, but index data needs a broker connection (Settings → Broker connection).')+'</div>';
+    } else {
+      // verdict
+      var ahead = CMP_KEYS.filter(function(k){ return agg.per[k].n && agg.per[k].gap>0.005; }).length, tot = CMP_KEYS.filter(function(k){ return agg.per[k].n; }).length;
+      var ref = agg.per.nifty50.n ? agg.per.nifty50 : agg.per[CMP_KEYS.filter(function(k){ return agg.per[k].n; })[0]];
+      var vcls = ahead===tot ? 'pos' : (ahead===0 ? 'neg' : '');
+      html += '<div class="cmpov-verdict '+vcls+'"><span class="big '+(agg.pf>=0?'pos':'neg')+'">'+cmpFmtPct(agg.pf)+'</span><span>Your portfolio beat <b>'+ahead+' of '+tot+'</b> indices '+(per.from ? 'over this '+(cmpScope==='week'?'week':'month') : 'over all recorded days')+'.</span></div>';
+      // bars
+      var vals = [agg.pf]; CMP_KEYS.forEach(function(k){ if(agg.per[k].n) vals.push(agg.per[k].ret); });
+      var mx = Math.max.apply(null, vals.map(function(v){ return Math.abs(v); }).concat([0.25]));
+      var bar = function(v, me){ var w = Math.min(50, Math.abs(v)/mx*50), c = v>=0?'pos':'neg'; return '<div class="cmpov-track"><i class="mid"></i><b class="fill '+(me?'':c)+'" style="'+(v>=0?'left:50%;':'right:50%;')+'width:'+w.toFixed(1)+'%;"></b></div>'; };
+      html += '<div class="cmpov-rows"><div class="cmpov-row me"><div class="cmpov-name">Portfolio</div>'+bar(agg.pf,true)+'<div class="cmpov-val '+(agg.pf>=0?'pos':'neg')+'">'+cmpFmtPct(agg.pf)+'</div><div class="cmpov-gap"></div></div>';
+      CMP_KEYS.forEach(function(k){
+        var s = agg.per[k]; if(!s.n) return;
+        html += '<div class="cmpov-row"><div class="cmpov-name">'+CMP_SHORT[k]+'</div>'+bar(s.ret,false)+'<div class="cmpov-val '+(s.ret>=0?'pos':'neg')+'">'+cmpFmtPct(s.ret)+'</div><div class="cmpov-gap '+(s.gap>=0?'pos':'neg')+'">You '+(s.gap>=0?'+':'−')+Math.abs(s.gap).toFixed(2)+' pp</div></div>';
+      });
+      html += '</div>';
+    }
+    // day tiles (week / month only)
+    if(per.from && wdKeys.length){
+      html += '<div class="cmpov-sec"><span class="t">Day by day</span><div class="cmpov-chips"><span class="t" style="align-self:center;text-transform:none;letter-spacing:0;font-weight:600;">Tags vs</span>'+CMP_KEYS.map(function(k){ return seg('cmpidx',k,CMP_SHORT[k],cmpIndexSel); }).join('')+'</div></div>';
+      html += '<div class="cmpov-wd"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div><div class="cmpov-grid">';
+      var lead = (new Date(wdKeys[0]+'T00:00:00').getDay()+6)%7;
+      for(var i=0;i<lead;i++) html += '<div class="cmpov-tile blank"></div>';
+      wdKeys.forEach(function(k){ html += cmpTileHtml(k, rows, todayStr); });
+      html += '</div>';
+      if(cmpOvSel && rows[cmpOvSel] && wdKeys.indexOf(cmpOvSel)>-1){
+        var dl = new Date(cmpOvSel+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long', day:'numeric', month:'short'});
+        html += '<div class="cmpov-day"><div class="hd">'+escapeHtml(dl)+'</div>'+cmpDayDetailBody(rows[cmpOvSel])+'</div>';
+      }
+      html += '<div class="tcal-cmp-note" style="margin-bottom:6px;">▲ / ▼ = percentage points your portfolio beat / lagged the chosen index that day. Tap a day for all three indices.</div>';
+    }
+    // scorecard
+    if(keys.length && CMP_KEYS.some(function(k){ return agg.per[k].n>0; })){
+      html += '<div class="cmpov-sec" style="margin-top:16px;"><span class="t">Scorecard · days beaten vs lagged</span></div><div class="cmpov-tablewrap"><table class="tcal-cmp-table"><tr><th>Index</th><th>Beat it</th><th>Lagged</th><th class="c-tie">Tie</th><th>Days</th><th>Beat %</th><th>Avg pp</th></tr>'
+        + CMP_KEYS.map(function(k){
+          var r = agg.per[k]; if(!r.n) return '<tr><td>'+CMP_SHORT[k]+'</td><td colspan="6" style="color:var(--ink-faint);text-align:left;">no data</td></tr>';
+          var rate = Math.round(r.beat/r.n*100), avg = r.ex/r.n;
+          return '<tr><td>'+CMP_SHORT[k]+'</td><td class="pos">'+r.beat+'</td><td class="neg">'+r.lag+'</td><td class="c-tie">'+r.tie+'</td><td>'+r.n+'</td><td class="'+(rate>=50?'pos':'neg')+'">'+rate+'%</td><td class="'+(avg>=0?'pos':'neg')+'">'+(avg>=0?'+':'−')+Math.abs(avg).toFixed(2)+'</td></tr>';
+        }).join('') + '</table></div><div class="tcal-cmp-note">“Beat it” = days your portfolio\'s 1-day % change was higher than the index\'s; “Lagged” = days the index was higher. Avg pp = average daily gap in percentage points.</div>';
+    }
+    if(!force && html===cmpOvLastHtml) return;
+    cmpOvLastHtml = html; body.innerHTML = html;
+  }
+  (function(){
+    var card = document.getElementById('cmpOvCard'); if(!card) return;
+    card.addEventListener('click', function(e){
+      var t = e.target.closest('[data-scope],[data-cmpnav],[data-cmpidx],[data-cmpday]'); if(!t || !card.contains(t)) return;
+      if(t.dataset.scope){ cmpScope = t.dataset.scope; cmpOffset = 0; cmpOvSel = null; }
+      else if(t.dataset.cmpnav){ if(t.disabled) return; cmpOffset = Math.min(0, cmpOffset + parseInt(t.dataset.cmpnav,10)); cmpOvSel = null; }
+      else if(t.dataset.cmpidx){ cmpIndexSel = t.dataset.cmpidx; }
+      else if(t.dataset.cmpday){ cmpOvSel = (cmpOvSel===t.dataset.cmpday) ? null : t.dataset.cmpday; }
+      renderCmpOverview(true);
+    });
+  })();
 
   // Tiny inline trend line for list rows (Groww holdings-style). Returns an SVG string,
   // not a chart library — consistent with the rest of the dashboard's zero-dependency charts.
@@ -9757,6 +9936,7 @@
     document.querySelectorAll('#tpanel-analytics .analytics-subpanel').forEach(p=>p.classList.remove('active'));
     const panel = document.getElementById('apanel-'+name);
     if(panel) panel.classList.add('active');
+    if(name==='afterexit'){ try{ renderAfterExit(true); }catch(e){ console.warn(e); } }
   }
   const analyticsSubnavEl = document.getElementById('analyticsSubnav');
   if(analyticsSubnavEl){
@@ -9766,6 +9946,187 @@
       activateAnalyticsPanel(btn.dataset.apanel);
     });
   }
+
+
+  // =====================================================================
+  // AFTER EXIT — what a stock did after you sold it.
+  // For each closed position (grouped by ticker + exit day) this loads the daily closes
+  // from the exit date to today (one /candles call per ticker, cached 6h in this browser)
+  // and reads the close on / just before exit + 1 week, 15 days, 1 month (30d), 6 months
+  // (182d) and 1 year (365d). Horizons still in the future show a countdown.
+  // Short covers are mirrored: a FALL after the cover is the "missed" move.
+  // =====================================================================
+  var PX_HORIZONS = [ {k:'w1', label:'+1 week', short:'1W', days:7}, {k:'d15', label:'+15 days', short:'15D', days:15}, {k:'m1', label:'+1 month', short:'1M', days:30}, {k:'m6', label:'+6 months', short:'6M', days:182}, {k:'y1', label:'+1 year', short:'1Y', days:365} ];
+  var PX_LS = 'fv_postexit_cache_v1', PX_TTL = 6*60*60*1000;
+  var pxCache = null, pxErr = {}, pxLoading = false, pxOpen = null, pxLimit = 12, pxSort = 'recent', pxLastHtml = '';
+
+  function pxDisk(){ if(pxCache) return pxCache; try{ pxCache = JSON.parse(localStorage.getItem(PX_LS)||'{}') || {}; }catch(e){ pxCache = {}; } return pxCache; }
+  function pxSave(){ try{ localStorage.setItem(PX_LS, JSON.stringify(pxDisk())); }catch(e){} }
+  function pxAddDays(key, n){ var d = new Date(key+'T00:00:00'); d.setDate(d.getDate()+n); return todayKey(d); }
+  function pxDaysBetween(a, b){ return Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00'))/86400000); }
+
+  function pxExits(){
+    var m = {};
+    (db.trades||[]).forEach(function(t){
+      if(!t.exitDT) return;
+      var xp = parseFloat(t.exitPrice), q = parseFloat(t.qty), ep = parseFloat(t.entryPrice), d = String(t.exitDT).slice(0,10);
+      if(isNaN(xp) || !(q>0) || !/^\d{4}-\d{2}-\d{2}$/.test(d) || !t.ticker) return;
+      var dir = t.direction==='short' ? 'short' : 'long', k = t.ticker+'|'+d+'|'+dir;
+      var g = m[k] || (m[k] = {ticker:t.ticker, date:d, dir:dir, qty:0, xv:0, ev:0, evq:0, pnl:0, hasPnl:false});
+      g.qty += q; g.xv += xp*q; if(!isNaN(ep)){ g.ev += ep*q; g.evq += q; }
+      var pn = parseFloat(t.pnl); if(!isNaN(pn)){ g.pnl += pn; g.hasPnl = true; }
+    });
+    return Object.keys(m).map(function(k){ var g = m[k]; g.exitPrice = g.xv/g.qty; g.entryPrice = g.evq ? g.ev/g.evq : null; return g; });
+  }
+  // last close on/before `date` (pts = [[date, close], …] ascending)
+  function pxCloseOnOrBefore(pts, date){
+    var lo = 0, hi = pts.length-1, ans = -1;
+    while(lo<=hi){ var mid = (lo+hi)>>1; if(pts[mid][0]<=date){ ans = mid; lo = mid+1; } else hi = mid-1; }
+    return ans<0 ? null : pts[ans];
+  }
+  function pxNowPrice(ticker, pts){
+    var key = bkSymbolKey(ticker), q = key ? liveQuotes[key] : null;
+    if(q && !isNaN(parseFloat(q.ltp))) return {price:parseFloat(q.ltp), live:true};
+    if(pts && pts.length) return {price:pts[pts.length-1][1], live:false, date:pts[pts.length-1][0]};
+    return null;
+  }
+  // → {price, pct, good} | {pending:days} | {na:true}
+  function pxHorizon(g, pts, days){
+    var today = todayKey(), target = pxAddDays(g.date, days);
+    if(target > today) return {pending: pxDaysBetween(today, target)};
+    if(!pts || !pts.length) return {na:true};
+    var c = pxCloseOnOrBefore(pts, target);
+    if(!c || c[0] < g.date || pxDaysBetween(c[0], target) > 6) return {na:true};   // no data near the target date
+    return pxMove(g, c[1], c[0]);
+  }
+  function pxMove(g, price, date){
+    var pct = (price-g.exitPrice)/g.exitPrice*100;
+    return {price:price, pct:pct, date:date, good: g.dir==='long' ? pct<0 : pct>0, flat: Math.abs(pct)<0.05};
+  }
+  function pxSignedMiss(g, now){ return now ? (g.dir==='long' ? now.pct : -now.pct) : -Infinity; }   // + = it kept running without you
+
+  async function pxEnsure(force){
+    if(pxLoading || !bkReady()) return;
+    var exits = pxExits(), need = {}, today = todayKey();
+    exits.forEach(function(g){ if(!need[g.ticker] || g.date < need[g.ticker]) need[g.ticker] = g.date; });
+    var cache = pxDisk(), list = Object.keys(need).filter(function(t){
+      var c = cache[t]; if(!bkSymbolKey(t)){ pxErr[t] = 'no symbol'; return false; }
+      return force || !c || Date.now()-c.at > PX_TTL || c.from > need[t];
+    });
+    if(!list.length) return;
+    pxLoading = true;
+    try{
+      for(var i=0;i<list.length;i++){
+        var t = list[i], key = bkSymbolKey(t);
+        if(Date.now() < bkCooldownUntil){ pxErr[t] = 'Rate limit — will retry'; break; }
+        try{
+          var from = pxAddDays(need[t], -4);
+          var r = await bkGet('/candles', {symbol:key, interval:'day', from:from, to:today, broker:bkCfg().pref}, 45000);
+          var pts = (r.candles||[]).map(function(c){ return [bkIstDate(c.t), c.c]; }).filter(function(p){ return p[1]!=null && !isNaN(p[1]) && p[1]>0; }).sort(function(a,b){ return a[0].localeCompare(b[0]); });
+          if(!pts.length) throw new Error('no price history returned');
+          cache[t] = {pts:pts, at:Date.now(), from:from}; delete pxErr[t]; pxSave();
+        }catch(e){
+          if(bkIsRateLimit(e)){ bkStartCooldown(); pxErr[t] = 'Rate limit — will retry'; break; }
+          pxErr[t] = e.message || 'could not load prices';
+        }
+        try{ renderAfterExit(); }catch(e){}
+        if(i<list.length-1) await new Promise(function(r){ setTimeout(r, 450); });
+      }
+    } finally { pxLoading = false; try{ renderAfterExit(); }catch(e){} }
+  }
+
+  function pxChartSvg(g, pts){
+    var end = pxAddDays(g.date, 380), s = (pts||[]).filter(function(p){ return p[0]>=g.date && p[0]<=end; });
+    if(s.length<2) return '<div class="td-empty-note" style="padding:8px 0;">Not enough price history after the exit yet.</div>';
+    var W = 600, H = 160, pl = 8, pr = 8, pt = 14, pb = 20;
+    var t0 = new Date(s[0][0]+'T00:00:00').getTime(), t1 = new Date(s[s.length-1][0]+'T00:00:00').getTime(), span = (t1-t0)||1;
+    var lo = Math.min(g.exitPrice, Math.min.apply(null, s.map(function(p){ return p[1]; }))), hi = Math.max(g.exitPrice, Math.max.apply(null, s.map(function(p){ return p[1]; }))), rng = (hi-lo)||1;
+    var X = function(d){ return pl + (new Date(d+'T00:00:00').getTime()-t0)/span*(W-pl-pr); }, Y = function(v){ return pt + (1-(v-lo)/rng)*(H-pt-pb); };
+    var path = s.map(function(p,i){ return (i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1); }).join(' ');
+    var yx = Y(g.exitPrice).toFixed(1), out = '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Price after exit">';
+    out += '<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+yx+'" y2="'+yx+'" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="4 4"/>';
+    out += '<text x="'+(W-pr)+'" y="'+(parseFloat(yx)-4)+'" text-anchor="end" font-size="10" font-weight="700" fill="var(--accent-dim)">your exit '+bkPx(g.exitPrice)+'</text>';
+    out += '<path d="'+path+'" fill="none" stroke="var(--ink-dim)" stroke-width="1.6" stroke-linejoin="round"/>';
+    PX_HORIZONS.forEach(function(hz){
+      var tgt = pxAddDays(g.date, hz.days); if(tgt > s[s.length-1][0]) return;
+      var c = pxCloseOnOrBefore(s, tgt); if(!c) return;
+      var mv = pxMove(g, c[1], c[0]), col = mv.good ? 'var(--teal)' : 'var(--rose)', x = X(c[0]), y = Y(c[1]);
+      out += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4" fill="'+col+'" stroke="var(--surface)" stroke-width="1.5"/>';
+      out += '<text x="'+x.toFixed(1)+'" y="'+(H-5)+'" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--ink-faint)">'+hz.short+'</text>';
+    });
+    var last = s[s.length-1], lx = X(last[0]), ly = Y(last[1]);
+    out += '<circle cx="'+lx.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="4" fill="var(--ink)"/>';
+    out += '<text x="'+(lx-6).toFixed(1)+'" y="'+(ly-8).toFixed(1)+'" text-anchor="end" font-size="10" font-weight="800" fill="var(--ink)">now '+bkPx(last[1])+'</text>';
+    return out+'</svg>';
+  }
+
+  function renderAfterExit(kick){
+    var body = document.getElementById('pxBody'); if(!body) return;
+    var exits = pxExits(), cache = pxDisk(), today = todayKey();
+    if(!exits.length){ body.innerHTML = '<div class="td-empty-note" style="text-align:left;">No closed trades yet — once you exit a position, you\'ll see here how the stock traded afterwards.</div>'; return; }
+    if(kick) pxEnsure(false);
+    // per-exit computed rows
+    var rows = exits.map(function(g){
+      var c = cache[g.ticker], pts = c ? c.pts : null, nowP = pxNowPrice(g.ticker, pts);
+      var now = nowP ? Object.assign(pxMove(g, nowP.price, nowP.date||today), {live:nowP.live}) : null;
+      var hz = {}; PX_HORIZONS.forEach(function(x){ hz[x.k] = pxHorizon(g, pts, x.days); });
+      return {g:g, pts:pts, now:now, hz:hz, err:pxErr[g.ticker]};
+    });
+    if(pxSort==='missed') rows.sort(function(a,b){ return pxSignedMiss(b.g,b.now) - pxSignedMiss(a.g,a.now); });
+    else if(pxSort==='saved') rows.sort(function(a,b){ return pxSignedMiss(a.g,a.now) - pxSignedMiss(b.g,b.now) || 0; });
+    else rows.sort(function(a,b){ return b.g.date.localeCompare(a.g.date); });
+    var sortEl = document.getElementById('pxSort'); if(sortEl && sortEl.value!==pxSort) sortEl.value = pxSort;
+
+    var fmtPct = function(n){ return (n>=0?'+':'−')+Math.abs(n).toFixed(1)+'%'; };
+    var html = '';
+    // summary across all exits
+    var sumRows = PX_HORIZONS.map(function(x){ return {k:x.k, label:x.label}; }).concat([{k:'now', label:'Now'}]).map(function(x){
+      var vals = rows.map(function(r){ return x.k==='now' ? r.now : r.hz[x.k]; }).filter(function(v){ return v && v.pct!==undefined; });
+      if(!vals.length) return '<tr><td>'+x.label+'</td><td colspan="4" style="color:var(--ink-faint);text-align:left;">no data yet</td></tr>';
+      var avg = vals.reduce(function(s,v){ return s+v.pct; },0)/vals.length, kept = vals.filter(function(v){ return !v.good && !v.flat; }).length;
+      var rate = Math.round(kept/vals.length*100);
+      return '<tr><td>'+x.label+'</td><td>'+vals.length+'</td><td>'+fmtPct(avg)+'</td><td class="'+(rate>=50?'bad':'good')+'">'+kept+' / '+vals.length+'</td><td class="'+(rate>=50?'bad':'good')+'">'+rate+'%</td></tr>';
+    }).join('');
+    html += '<div class="px-sum"><div class="px-sum-t">Across all '+rows.length+' exit'+(rows.length===1?'':'s')+'</div><div class="px-tablewrap"><table class="px-table"><tr><th>Horizon</th><th>Exits</th><th>Avg move</th><th>Kept running</th><th>Rate</th></tr>'+sumRows+'</table></div><div class="tcal-cmp-note">“Kept running” = the stock moved further in the direction you were trading after you got out (higher after a sale of a long, lower after a short cover). Avg move is the raw price change versus your exit price.</div></div>';
+    if(!bkReady()) html += '<div class="td-empty-note" style="text-align:left;color:var(--rose);">Price history needs a broker connection (Settings → Broker connection). Showing only what is cached.</div>';
+    else if(pxLoading) html += '<div class="td-empty-note" style="text-align:left;">Loading price history…</div>';
+
+    var shown = rows.slice(0, pxLimit);
+    html += '<div class="px-list">' + shown.map(function(r){
+      var g = r.g, id = g.ticker+'|'+g.date+'|'+g.dir;
+      var dl = new Date(g.date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric', month:'short', year:'numeric'});
+      var errShort = r.err ? (/proxy|reach|network|timeout|took too long/i.test(r.err) ? 'Price feed unavailable' : (/rate/i.test(r.err) ? 'Rate limit — retrying' : (r.err==='no symbol' ? 'Set a symbol' : 'No price data'))) : '';
+      var ver = '<span class="px-verdict na" title="'+escapeHtml(r.err||'')+'">'+(r.err ? errShort : (pxLoading ? 'loading…' : 'no data'))+'</span>';
+      if(r.now){ ver = r.now.flat ? '<span class="px-verdict na">Flat since exit</span>' : '<span class="px-verdict '+(r.now.good?'good':'bad')+'">'+(r.now.good ? 'Good exit' : (g.dir==='long' ? 'Sold early' : 'Covered early'))+' · '+fmtPct(r.now.pct)+'</span>'; }
+      var left = '';
+      if(r.now && !r.now.flat){ var diff = (r.now.price-g.exitPrice)*g.qty*(g.dir==='long'?1:-1); left = '<div class="px-pnl '+(diff<=0?'pos':'neg')+'">'+(diff>0?'Left on table ':'Saved ')+fmtPnl(Math.round(Math.abs(diff)))+' since</div>'; }
+      var cell = function(label, v, isNow){
+        var cls = 'px-cell'+(isNow?' now':'');
+        if(!v) return '<div class="'+cls+' na"><div class="l">'+label+'</div><div class="v">—</div></div>';
+        if(v.pending!==undefined) return '<div class="'+cls+' na"><div class="l">'+label+'</div><div class="v">in '+v.pending+'d</div><div class="c">not yet</div></div>';
+        if(v.na) return '<div class="'+cls+' na"><div class="l">'+label+'</div><div class="v">—</div><div class="c">no data</div></div>';
+        return '<div class="'+cls+'"><div class="l">'+label+(isNow&&v.live?' · live':'')+'</div><div class="v">'+bkPx(v.price)+'</div><div class="c '+(v.flat?'':(v.good?'good':'bad'))+'">'+fmtPct(v.pct)+'</div></div>';
+      };
+      var grid = cell('Now', r.now, true) + PX_HORIZONS.map(function(x){ return cell(x.label, r.hz[x.k], false); }).join('');
+      var open = pxOpen===id;
+      return '<div class="px-card"><div class="px-head" data-pxrow="'+escapeHtml(id)+'"><div style="min-width:0;"><div class="px-name">'+escapeHtml(g.ticker)+(g.dir==='short'?' <span class="pf-tag">SHORT</span>':'')+'</div><div class="px-sub">Exit '+dl+' · '+g.qty+' @ '+bkPx(g.exitPrice)+(g.entryPrice?' · bought '+bkPx(g.entryPrice):'')+'</div></div><div class="px-r">'+ver+left+'</div></div>'
+        + '<div class="px-grid">'+grid+'</div>'
+        + (open ? '<div class="px-chart">'+pxChartSvg(g, r.pts)+'</div>' : '<div class="px-note">Tap the header for the price chart since exit.</div>')
+        + '</div>';
+    }).join('') + '</div>';
+    if(rows.length>pxLimit) html += '<div style="text-align:center;margin-top:12px;"><button class="td-list-sort" data-pxmore="1">Show more ('+(rows.length-pxLimit)+' more)</button></div>';
+    if(html===pxLastHtml) return;
+    pxLastHtml = html; body.innerHTML = html;
+  }
+  (function(){
+    var body = document.getElementById('pxBody'), sortEl = document.getElementById('pxSort'), refEl = document.getElementById('pxRefresh');
+    if(body) body.addEventListener('click', function(e){
+      var more = e.target.closest('[data-pxmore]'); if(more){ pxLimit += 12; renderAfterExit(); return; }
+      var row = e.target.closest('[data-pxrow]'); if(row){ var id = row.dataset.pxrow; pxOpen = (pxOpen===id) ? null : id; renderAfterExit(); }
+    });
+    if(sortEl) sortEl.addEventListener('change', function(){ pxSort = sortEl.value; renderAfterExit(); });
+    if(refEl) refEl.addEventListener('click', function(){ pxErr = {}; if(bkReady()){ pxEnsure(true); } renderAfterExit(); showToast(bkReady() ? 'Refreshing price history…' : 'Connect a broker in Settings to load prices.'); });
+  })();
 
   // Kept for backward compatibility with existing call sites — now drives the full dashboard.
   function renderTradeStats(){
