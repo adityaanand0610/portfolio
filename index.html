@@ -2906,6 +2906,17 @@ body.sidebar-open{ overflow:hidden; }
 
 #tdOverviewStats .td-stat-val{ font-size:clamp(16px,1.9vw,21px); }
 @media (min-width:640px){ .td-stat-grid{ grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); } }
+
+/* fix: search icon overlapped the placeholder (input[type=text] padding out-ranked .trades-search) */
+.trades-search-wrap .trades-search{ padding-left:42px !important; }
+.trades-search-wrap svg{ left:15px; z-index:1; }
+/* fix: the original scroll-hint fade is absolutely positioned INSIDE a horizontally scrolling row,
+   so after scrolling it landed on top of the active tab ("Le|ssons"). The row already scrolls clearly. */
+#analyticsSubnav::after, .trade-subnav::after{ display:none !important; content:none !important; }
+#analyticsSubnav{ padding-right:0 !important; }
+
+/* de-duplicate: the date already lives in the top bar crumb (desktop/tablet); keep the hero compact */
+@media (min-width:768px){ #homeDate{ display:none; } .home-hero{ padding:22px 28px; } }
 </style>
 </head>
 <body class="on-home-view">
@@ -2995,7 +3006,6 @@ body.sidebar-open{ overflow:hidden; }
 
     <div class="topbar-actions">
       <div id="syncStatus"><span class="dot"></span><span id="syncStatusText">offline</span></div>
-      <button class="tb-cta" id="fvTbNewTrade" type="button" title="New trade (T)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New trade</button>
       <button class="icon-btn" id="globalSearchBtn" title="Search (Ctrl/Cmd+K)" aria-label="Search">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
@@ -3058,7 +3068,6 @@ body.sidebar-open{ overflow:hidden; }
         <div class="home-greeting" id="homeGreeting">Welcome back</div>
         <div class="home-date" id="homeDate">—</div>
       </div>
-      <div class="home-hero-right" id="fvHeroRight"></div>
     </div>
 
     <div class="fv-kpis" id="fvHomeKpis"></div>
@@ -3103,30 +3112,6 @@ body.sidebar-open{ overflow:hidden; }
         <div id="fvLesson"></div>
       </section>
     </div>
-
-    <div class="section-label">Quick Actions</div>
-    <div class="card" style="margin-bottom: var(--space-6);">
-      <div class="home-quick-actions">
-        <button class="btn primary" data-view="trades">📈 Open Trade Log</button>
-        <button class="btn ghost" data-view="notes">✎ New Note</button>
-      </div>
-    </div>
-
-    <div class="section-label-row">
-      <div class="section-label">Recents</div>
-      <button class="see-all-link" data-view="notes">See all</button>
-    </div>
-    <div class="recents-scroll" id="homeRecents"></div>
-
-    <div class="section-label-row">
-      <div class="section-label">Categories</div>
-    </div>
-    <div class="category-grid" id="homeCategoryGrid"></div>
-
-    <div class="section-label-row">
-      <div class="section-label">Collections</div>
-    </div>
-    <div class="collection-grid" id="homeCollections"></div>
 
   </section>
 
@@ -6430,13 +6415,27 @@ body.sidebar-open{ overflow:hidden; }
   }
   function saveBenchmarkDiskCache(c){ try{ localStorage.setItem(BENCHMARK_CACHE_KEY, JSON.stringify(c)); }catch(e){} }
 
+  function benchIstNow(){ return new Date(Date.now() + (330 + new Date().getTimezoneOffset())*60000); }   // wall-clock IST
+  function benchMarketOpen(){ const n = benchIstNow(), w = n.getDay(), m = n.getHours()*60+n.getMinutes(); return w>0 && w<6 && m>=555 && m<=960; }
+  function benchExpectedLast(){
+    const n = benchIstNow(), m = n.getHours()*60+n.getMinutes();
+    const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    if(d.getDay()>0 && d.getDay()<6 && m<555) d.setDate(d.getDate()-1);
+    while(d.getDay()===0 || d.getDay()===6) d.setDate(d.getDate()-1);
+    return todayKey(d);
+  }
+  let benchmarkMemAt = {}, benchRefreshing = {};
   async function fetchBenchmarkSeries(key, attempt){
     const cfg = BENCHMARK_TICKERS[key];
     if(!cfg) return null;
     const disk = loadBenchmarkDiskCache(), cached = disk[key];
-    if(cached && !cached.partial && cached.points && cached.points.length>=8 && (Date.now()-cached.fetchedAt) < BENCHMARK_CACHE_TTL){
-      const ld = cached.points[cached.points.length-1].date;
-      if((Date.now()-new Date(ld+'T00:00:00').getTime())/86400000 <= 7) return cached.points;
+    if(cached && !cached.partial && cached.points && cached.points.length>=8){
+      const age = Date.now()-cached.fetchedAt, ld = cached.points[cached.points.length-1].date;
+      const open = benchMarketOpen();
+      const ttl = open ? 5*60*1000 : BENCHMARK_CACHE_TTL;                 // during market hours keep today's candle fresh
+      const hasLatest = ld >= benchExpectedLast();                         // does it include the latest trading day?
+      const liveStale = cached.live && !open;                              // fetched mid-session, market has closed since
+      if(age < ttl && !liveStale && (hasLatest || age < 15*60*1000) && (Date.now()-new Date(ld+'T00:00:00').getTime())/86400000 <= 7) return cached.points;
     }
     if(!bkReady()) return cached ? cached.points : null;
     if(Date.now() < bkCooldownUntil) return cached ? cached.points : null;
@@ -6472,7 +6471,7 @@ body.sidebar-open{ overflow:hidden; }
           if(!bestPartial || points.length>bestPartial.length){ bestPartial = points; bestPartialSym = symbol; bestPartialSrc = r.source; }
           throw new Error('too little recent data for '+symbol+' ('+points.length+' days)');
         }
-        disk[key] = { points:points, fetchedAt: Date.now(), symbol:symbol, source:r.source };
+        disk[key] = { points:points, fetchedAt: Date.now(), symbol:symbol, source:r.source, live:benchMarketOpen() };
         saveBenchmarkDiskCache(disk);
         return points;
       }catch(err){ lastErr = err; benchErr[key] = symbol+': '+err.message; console.warn('Benchmark fetch failed for', key, symbol, err.message); if(bkIsRateLimit(err)){ bkStartCooldown(); break; } if(err.code==='no_proxy' || err.code==='kite_login') break; }
@@ -6491,8 +6490,23 @@ body.sidebar-open{ overflow:hidden; }
   // Returns the points array, or 'error' if unavailable.
   async function ensureBenchmarkLoaded(key){
     const existing = benchmarkMemCache[key];
-    if(existing && existing!=='loading') return existing;
-    if(existing==='loading'){
+    if(existing && existing!=='loading'){
+      const age = Date.now() - (benchmarkMemAt[key]||0);
+      const ttl = existing==='error' ? 5*60*1000 : (benchMarketOpen() ? 5*60*1000 : 30*60*1000);
+      if(age < ttl) return existing;
+      if(Array.isArray(existing)){
+        // stale but usable: keep showing it, refresh quietly in the background and redraw when it lands
+        if(!benchRefreshing[key]){
+          benchRefreshing[key] = true;
+          const rr = benchQueue.then(function(){ return fetchBenchmarkSeries(key); });
+          benchQueue = rr.catch(function(){}).then(function(){ return new Promise(function(r){ setTimeout(r, 1500); }); });
+          rr.then(function(p){ if(p && p.length){ benchmarkMemCache[key] = p; try{ renderCmpOverview(true); }catch(e){} } })
+            .catch(function(){}).then(function(){ benchRefreshing[key] = false; benchmarkMemAt[key] = Date.now(); });
+        }
+        return existing;
+      }
+      delete benchmarkMemCache[key];   // an expired 'error' gets another try
+    } else if(existing==='loading'){
       // Another caller already kicked off the fetch — wait for it.
       while(benchmarkMemCache[key]==='loading'){ await new Promise(r=>setTimeout(r,120)); }
       return benchmarkMemCache[key];
@@ -6501,10 +6515,10 @@ body.sidebar-open{ overflow:hidden; }
     const run = benchQueue.then(function(){ return fetchBenchmarkSeries(key); });
     benchQueue = run.catch(function(){}).then(function(){ return new Promise(function(r){ setTimeout(r, 1500); }); });
     const pts = await run;
-    if(pts && pts.length){ benchmarkMemCache[key] = pts; return pts; }
+    if(pts && pts.length){ benchmarkMemCache[key] = pts; benchmarkMemAt[key] = Date.now(); return pts; }
     // Rate-limited / paused: not a real failure — don't remember it, so it can be retried later.
     if(Date.now() < bkCooldownUntil){ delete benchmarkMemCache[key]; return 'pending'; }
-    benchmarkMemCache[key] = 'error';
+    benchmarkMemCache[key] = 'error'; benchmarkMemAt[key] = Date.now();
     return benchmarkMemCache[key];
   }
 
@@ -11412,6 +11426,14 @@ body.sidebar-open{ overflow:hidden; }
 
     let rzT = null;
     window.addEventListener('resize', ()=>{ clearTimeout(rzT); rzT = setTimeout(()=>{ if(currentView()==='home'){ try{ renderEquity(); renderHeat(); }catch(e){} } }, 180); });
+
+    // hide/show ₹ amounts: keep Home, sidebar card and hero in sync with the eye toggle / settings switch
+    const _refreshAmt = refreshAmountVisibilityUI;
+    refreshAmountVisibilityUI = function(){
+      const r = _refreshAmt.apply(this, arguments);
+      try{ if($('fvHomeKpis')){ renderFvHome(); } }catch(e){ console.error('fv amt', e); }
+      return r;
+    };
 
     // first paint
     afterView(); updateSidebarCard();
