@@ -2917,6 +2917,29 @@ body.sidebar-open{ overflow:hidden; }
 
 /* de-duplicate: the date already lives in the top bar crumb (desktop/tablet); keep the hero compact */
 @media (min-width:768px){ #homeDate{ display:none; } .home-hero{ padding:22px 28px; } }
+
+/* ---------- calendar: columns must be allowed to shrink (1fr = min-content blew the grid past the card on phones) ---------- */
+.tcal-weekday-row, .tcal-week-row{ grid-template-columns:repeat(7,minmax(0,1fr)) minmax(44px,.9fr); }
+.tcal-cell{ min-width:0; overflow:hidden; }
+.tcal-pnl-tag, .tcal-trade-count{ max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:clip; }
+.tcal-card, .tcal-table{ min-width:0; max-width:100%; }
+@media (max-width:699.98px){
+  .tcal-card{ padding:14px 10px 16px; }
+  .tcal-weekday-row, .tcal-week-row, .tcal-grid{ gap:4px; }
+  .tcal-weekday-row span{ font-size:8.5px; letter-spacing:0; }
+  #historyCalendarView .tcal-cell{ aspect-ratio:auto; min-height:52px; padding:12px 1px 3px; gap:1px; border-radius:9px; justify-content:center; }
+  #historyCalendarView .tcal-day-num{ top:3px; left:5px; font-size:8.5px; line-height:1; }
+  #historyCalendarView .tcal-pnl-tag{ font-size:clamp(7.5px,2.15vw,9.5px); letter-spacing:-.04em; font-weight:800; }
+  #historyCalendarView .tcal-trade-count{ display:none; }
+  #historyCalendarView .tcal-snap-dot{ top:3px; right:3px; width:4px; height:4px; }
+  #historyCalendarView .tcal-week-total{ padding:2px 1px; min-height:52px; }
+  #historyCalendarView .tcal-week-total-lbl{ font-size:7px; }
+  #historyCalendarView .tcal-week-total-val{ font-size:clamp(7.5px,2.1vw,9.5px); letter-spacing:-.04em; }
+  #historyCalendarView .tcal-week-u{ font-size:7px; }
+  .tcal-summary-bar{ gap:6px; }
+  .tcal-stat{ padding:9px 10px; }
+  .tcal-stat-val{ font-size:14.5px; }
+}
 </style>
 </head>
 <body class="on-home-view">
