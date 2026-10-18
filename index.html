@@ -1400,6 +1400,24 @@
     border:1px solid transparent; border-radius:999px; padding:4px 11px; cursor:pointer; margin-left:8px;
   }
   .tcal-today-btn:hover{ border-color:var(--accent); }
+  .tcal-cell.is-holiday{ background:repeating-linear-gradient(135deg, var(--surface-raised) 0 6px, transparent 6px 12px); border-style:dashed; cursor:pointer; }
+  .tcal-cell.is-special{ background:var(--accent-bg); border-color:var(--accent); cursor:pointer; }
+  .tcal-cell.is-special.win, .tcal-cell.is-special.loss{ border-style:dashed; }
+  .tcal-cell.md-click{ cursor:pointer; }
+  .tcal-cell.md-click:hover{ border-color:var(--ink-faint); }
+  .tcal-md-tag{ font-size:8.5px; font-weight:700; color:var(--ink-faint); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 3px; text-align:center; }
+  .tcal-cell.is-special .tcal-md-tag{ color:var(--accent-dim); }
+  .mkd-hint{ font-size:11.5px; color:var(--ink-faint); line-height:1.5; margin:-4px 0 14px; }
+  .mkd-msg{ font-size:11.5px; color:var(--rose-dim); min-height:16px; margin-bottom:6px; }
+  .mkd-list{ margin-top:16px; border-top:1px solid var(--line); padding-top:12px; max-height:240px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
+  .mkd-row{ display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface-raised); font-size:12.5px; }
+  .mkd-row .d{ font-weight:700; white-space:nowrap; }
+  .mkd-row .l{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-dim); }
+  .mkd-badge{ font-size:9.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:2px 7px; border-radius:999px; background:var(--surface); border:1px dashed var(--ink-faint); color:var(--ink-faint); }
+  .mkd-badge.special{ background:var(--accent-bg); border:1px solid var(--accent); color:var(--accent-dim); }
+  .mkd-del{ border:none; background:transparent; color:var(--ink-faint); cursor:pointer; font-size:15px; line-height:1; padding:2px 4px; }
+  .mkd-del:hover{ color:var(--rose-dim); }
+  .mkd-empty{ font-size:12px; color:var(--ink-faint); text-align:center; padding:6px 0; }
 
   .tcal-table{ width:100%; }
   .tcal-weekday-row{
@@ -2841,7 +2859,12 @@ nav.tabs{ background:var(--surface); border-right:1px solid var(--line); }
 .fv-tr-pnl.pos{ color:var(--teal); } .fv-tr-pnl.neg{ color:var(--rose); }
 
 /* consistency heatmap */
-.fv-heat{ display:grid; grid-auto-flow:column; grid-template-rows:repeat(7,1fr); gap:4px; }
+.fv-heat{ display:grid; grid-auto-flow:column; grid-template-rows:repeat(5,1fr); gap:4px; }
+.fv-heat i.hol{ background:repeating-linear-gradient(135deg, var(--surface-raised) 0 3px, transparent 3px 6px); border-style:dashed; }
+.fv-heat i.off{ background:transparent; border-color:transparent; pointer-events:none; }
+.fv-heat i.wkend{ border-style:dotted; }
+.fv-heat i.wkend.w1, .fv-heat i.wkend.w2, .fv-heat i.wkend.w3, .fv-heat i.wkend.l1, .fv-heat i.wkend.l2, .fv-heat i.wkend.l3{ box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 70%, transparent); }
+.fv-heat-note{ font-size:10.5px; color:var(--ink-faint); margin-top:8px; }
 .fv-heat i{ aspect-ratio:1; border-radius:5px; background:var(--surface-raised); border:1px solid var(--line); min-width:0; transition:transform .12s var(--ease); }
 .fv-heat i:hover{ transform:scale(1.35); z-index:2; position:relative; }
 .fv-heat i.w1{ background:color-mix(in srgb, var(--teal) 28%, var(--surface)); border-color:transparent; }
@@ -2919,7 +2942,7 @@ body.sidebar-open{ overflow:hidden; }
 @media (min-width:768px){ #homeDate{ display:none; } .home-hero{ padding:22px 28px; } }
 
 /* ---------- calendar: columns must be allowed to shrink (1fr = min-content blew the grid past the card on phones) ---------- */
-.tcal-weekday-row, .tcal-week-row{ grid-template-columns:repeat(7,minmax(0,1fr)) minmax(44px,.9fr); }
+.tcal-weekday-row, .tcal-week-row{ grid-template-columns:var(--tcal-cols, repeat(5,minmax(0,1fr)) minmax(44px,.9fr)); }
 .tcal-cell{ min-width:0; overflow:hidden; }
 .tcal-pnl-tag, .tcal-trade-count{ max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:clip; }
 .tcal-card, .tcal-table{ min-width:0; max-width:100%; }
@@ -3126,6 +3149,7 @@ body.sidebar-open{ overflow:hidden; }
           <button class="fv-link" id="fvHeatLink" type="button">Calendar →</button>
         </div>
         <div class="fv-heat" id="fvHeat"></div>
+        <div class="fv-heat-note" id="fvHeatNote"></div>
         <div class="fv-heat-legend"><span>Loss</span><i style="background:var(--rose)"></i><i style="background:color-mix(in srgb, var(--rose) 45%, var(--surface))"></i><i style="background:var(--surface-raised);border:1px solid var(--line)"></i><i style="background:color-mix(in srgb, var(--teal) 45%, var(--surface))"></i><i style="background:var(--teal)"></i><span>Profit</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;"><i style="background:color-mix(in srgb, var(--accent) 30%, var(--surface))"></i>Journaled</span></div>
       </section>
 
@@ -3504,17 +3528,20 @@ body.sidebar-open{ overflow:hidden; }
             <div style="display:flex; align-items:center;">
               <div class="tcal-month-label" id="tcalMonthLabel">—</div>
               <button class="tcal-today-btn" id="tcalTodayBtn">Today</button>
+              <button class="tcal-today-btn" id="tcalMarketBtn" title="Add market holidays and special sessions">Holidays</button>
             </div>
             <button class="tcal-nav-btn" id="tcalNextBtn" aria-label="Next month">›</button>
           </div>
           <div class="tcal-table">
-            <div class="tcal-weekday-row"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span class="tcal-week-hdr">Week</span></div>
+            <div class="tcal-weekday-row" id="tcalWeekdayRow"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span class="tcal-week-hdr">Week</span></div>
             <div class="tcal-grid" id="tcalGrid"></div>
           </div>
           <div class="tcal-legend">
             <div class="tcal-legend-item"><span class="tcal-legend-dot" style="background:var(--teal-bg); border:1px solid var(--teal);"></span>Profitable day</div>
             <div class="tcal-legend-item"><span class="tcal-legend-dot" style="background:var(--rose-bg); border:1px solid var(--rose);"></span>Loss day</div>
             <div class="tcal-legend-item"><span class="tcal-legend-dot" style="background:var(--surface); border:1px solid var(--line);"></span>No trades</div>
+            <div class="tcal-legend-item"><span class="tcal-legend-dot" style="background:repeating-linear-gradient(135deg,var(--surface-raised) 0 3px,transparent 3px 6px); border:1px dashed var(--ink-faint);"></span>Market holiday</div>
+            <div class="tcal-legend-item"><span class="tcal-legend-dot" style="background:var(--accent-bg); border:1px solid var(--accent);"></span>Special session</div>
             <div class="tcal-legend-item">Darker = bigger day</div>
           </div>
           <div class="tcal-selected-trades" id="tcalSelectedTrades"></div>
@@ -7685,13 +7712,16 @@ body.sidebar-open{ overflow:hidden; }
         const byWd = wdStats.map(s=>s.pnl);
         const maxAbs = Math.max(1, ...byWd.map(v=>Math.abs(v)));
         const activeIdx = wdStats.map((s,i)=>i).filter(i=>wdStats[i].count>0);
+        // Trading week: Mon–Fri always; Sat / Sun only when there is at least one trade on them
+        const colIdx = [1,2,3,4,5].concat(wdStats[6].count>0?[6]:[], wdStats[0].count>0?[0]:[]);
         let bestI = activeIdx[0], worstI = activeIdx[0];
         activeIdx.forEach(i=>{ if(byWd[i]>byWd[bestI]) bestI=i; if(byWd[i]<byWd[worstI]) worstI=i; });
-        const w=340, h=160, barW = (w/7)*0.6, gap=(w/7);
+        const w=340, h=160, nCols = colIdx.length, barW = (w/nCols)*0.6, gap=(w/nCols);
         const midY = h/2 - 4;
-        const bars = byWd.map((v,i)=>{
+        const bars = colIdx.map((i,ci)=>{
+          const v = byWd[i];
           const barH = (Math.abs(v)/maxAbs) * (h/2 - 30);
-          const x = i*gap + (gap-barW)/2;
+          const x = ci*gap + (gap-barW)/2;
           const y = v>=0 ? midY-barH : midY;
           const isStandout = (i===bestI && v>0) || (i===worstI && v<0);
           const valLabelY = v>=0 ? y-4 : y+barH+11;
@@ -7821,10 +7851,11 @@ body.sidebar-open{ overflow:hidden; }
     if(!gridEl) return;
     const y = tcalViewDate.getFullYear(), mo = tcalViewDate.getMonth();
     labelEl.textContent = MONTH_LABELS[mo]+' '+y;
-    const firstDow = new Date(y,mo,1).getDay();
+    const firstDow = (new Date(y,mo,1).getDay()+6)%7; // Monday-first
     const daysInMonth = new Date(y,mo+1,0).getDate();
     const byDay = tradesByDayKey();
     const todayKeyStr = todayKey();
+    const MD = db.marketDays || {};
 
     // ---- Pass 1: compute per-day P&L for this month + month-level stats,
     // so day-cell heat intensity can scale relative to the month's biggest day. ----
@@ -7891,15 +7922,38 @@ body.sidebar-open{ overflow:hidden; }
     }
     while(cells.length % 7 !== 0) cells.push({empty:true});
 
+    // Trading calendar: Mon–Fri always. Sat / Sun columns appear only in months where
+    // there was an occasional weekend session (a trade logged on that day).
+    let showSat = false, showSun = false;
+    cells.forEach((c,i)=>{
+      const hasAct = c.empty ? false : ((dayStats[c.key] && dayStats[c.key].count) || (MD[c.key] && MD[c.key].type==='special'));
+      if(!hasAct) return;
+      if(i%7===5) showSat = true; else if(i%7===6) showSun = true;
+    });
+    const colOffs = [0,1,2,3,4].concat(showSat?[5]:[], showSun?[6]:[]);
+    const colsCss = 'repeat('+colOffs.length+',minmax(0,1fr)) minmax(44px,.9fr)';
+    const tblEl = gridEl.closest('.tcal-table');
+    if(tblEl) tblEl.style.setProperty('--tcal-cols', colsCss);
+    const hdrEl = document.getElementById('tcalWeekdayRow');
+    if(hdrEl){
+      const hdrNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      hdrEl.innerHTML = colOffs.map(o=>'<span'+(o>=5?' title="Occasional weekend session"':'')+'>'+hdrNames[o]+'</span>').join('') + '<span class="tcal-week-hdr">Week</span>';
+    }
+
     let html = '';
     for(let w=0; w<cells.length; w+=7){
-      const week = cells.slice(w, w+7);
+      const week = colOffs.map(o=>cells[w+o]);
+      const allWeek = cells.slice(w, w+7); // full week (for totals / snapshots)
       let weekTotal = 0, weekHasPnl = false, weekSnap = null;
-      week.forEach(c=>{ if(!c.empty && snaps[c.key]) weekSnap = snaps[c.key]; });
+      allWeek.forEach(c=>{ if(!c.empty && snaps[c.key]) weekSnap = snaps[c.key]; });
+      if(week.every(c=>c.empty)) continue;
       html += '<div class="tcal-week-row">';
       week.forEach(c=>{
         if(c.empty){ html += '<div class="tcal-cell empty"></div>'; return; }
         const stat = dayStats[c.key] || {pnl:0, hasPnl:false, count:0};
+        const cdow = new Date(c.key+'T00:00:00').getDay();
+        const md = MD[c.key], mdSpecial = !!(md && md.type==='special');
+        if((cdow===0 || cdow===6) && !stat.count && !snaps[c.key] && !mdSpecial){ html += '<div class="tcal-cell empty"></div>'; return; }
         let cls = 'tcal-cell';
         let styleAttr = '';
         if(stat.count){
@@ -7918,9 +7972,12 @@ body.sidebar-open{ overflow:hidden; }
         if(daySnap) cls += ' has-snap';
         if(c.key===todayKeyStr) cls += ' is-today';
         if(c.key===tcalSelectedKey) cls += ' is-selected';
+        if(md) cls += mdSpecial ? ' is-special' : ' is-holiday';
+        if(!stat.count && !daySnap) cls += ' md-click';
+        const mdTag = (md && !stat.count) ? `<div class="tcal-md-tag" title="${mdEsc(md.label||'')}">${mdSpecial?'★ ':''}${mdEsc(md.label || (mdSpecial?'Special':'Holiday'))}</div>` : '';
         html += `<div class="${cls}" data-daykey="${c.key}"${styleAttr}>
           ${daySnap?`<span class="tcal-snap-dot" title="Unrealised ${fmtCompactPnl(daySnap.u)}"></span>`:''}
-          <div class="tcal-day-num">${c.d}</div>
+          <div class="tcal-day-num">${c.d}${(mdSpecial && stat.count)?' ★':''}</div>${mdTag}
           ${stat.hasPnl?`<div class="tcal-pnl-tag">${fmtPnl(Math.round(stat.pnl))}</div><div class="tcal-trade-count">${stat.count} trade${stat.count===1?'':'s'}</div>`:(stat.count?`<div class="tcal-pnl-tag" style="color:var(--ink-faint);">${stat.count}T</div>`:'')}
         </div>`;
       });
@@ -7936,8 +7993,88 @@ body.sidebar-open{ overflow:hidden; }
         renderTradeCalendar();
       });
     });
+    gridEl.querySelectorAll('.tcal-cell.md-click').forEach(cell=>{
+      cell.addEventListener('click', ()=> openMarketDaysModal(cell.dataset.daykey));
+    });
     renderTcalSelectedTrades();
   }
+
+  // ---------- Market holidays + special sessions (stored in db.marketDays = {YYYY-MM-DD:{type,label}}) ----------
+  function mdEsc(x){ return String(x==null?'':x).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function mdFmt(k){ return new Date(k+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short', day:'numeric', month:'short', year:'numeric'}); }
+  function mdChanged(){
+    saveDB();
+    try{ renderTradeCalendar(); }catch(e){}
+    try{ window.dispatchEvent(new Event('fv-marketdays')); }catch(e){}
+  }
+  function openMarketDaysModal(prefKey){
+    let el = document.getElementById('mdModal');
+    if(!el){
+      el = document.createElement('div');
+      el.className = 'modal-backdrop'; el.id = 'mdModal';
+      el.innerHTML = `<div class="modal-sheet" role="dialog" aria-label="Market holidays and special sessions">
+        <div class="modal-title">Holidays &amp; special sessions</div>
+        <div class="mkd-hint"><b>Holiday</b>: market closed — won't break your streak. <b>Special session</b>: market open on a holiday or weekend (Muhurat trading, Budget Saturday…) — shows on your calendar and counts toward your streak if you trade.</div>
+        <div class="modal-row">
+          <div class="modal-field"><label>Date</label><input type="date" id="mdDate"></div>
+          <div class="modal-field"><label>Type</label><select id="mdType"><option value="holiday">Market holiday</option><option value="special">Special session</option></select></div>
+        </div>
+        <div class="modal-field"><label>Name (optional)</label><input type="text" id="mdLabel" maxlength="40" placeholder="e.g. Diwali Muhurat"></div>
+        <div class="mkd-msg" id="mdMsg"></div>
+        <div class="modal-actions"><button class="btn ghost" type="button" id="mdClose">Close</button><button class="btn primary" type="button" id="mdAdd">Add</button></div>
+        <div class="mkd-list" id="mdList"></div>
+      </div>`;
+      document.body.appendChild(el);
+      const close = ()=> el.classList.remove('open');
+      el.addEventListener('click', e=>{ if(e.target===el) close(); });
+      el.querySelector('#mdClose').addEventListener('click', close);
+      document.addEventListener('keydown', e=>{ if(e.key==='Escape' && el.classList.contains('open')) close(); });
+      const dateIn = el.querySelector('#mdDate'), typeIn = el.querySelector('#mdType'), labIn = el.querySelector('#mdLabel'), addBtn = el.querySelector('#mdAdd'), msg = el.querySelector('#mdMsg');
+      const syncForm = ()=>{
+        const ex = (db.marketDays||{})[dateIn.value];
+        if(ex){ typeIn.value = ex.type; labIn.value = ex.label||''; }
+        addBtn.textContent = ex ? 'Update' : 'Add';
+        msg.textContent = '';
+      };
+      dateIn.addEventListener('change', syncForm);
+      addBtn.addEventListener('click', ()=>{
+        const k = dateIn.value;
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(k)){ msg.textContent = 'Pick a date first.'; return; }
+        const dow = new Date(k+'T00:00:00').getDay(), wkend = dow===0 || dow===6, type = typeIn.value;
+        if(type==='holiday' && wkend){ msg.textContent = 'That is already a weekend — add a special session instead if the market is open.'; return; }
+        if(!db.marketDays) db.marketDays = {};
+        db.marketDays[k] = { type, label: labIn.value.trim() };
+        labIn.value = '';
+        mdChanged(); renderMdList(); syncForm();
+        const [yy,mm] = k.split('-').map(Number); tcalViewDate = new Date(yy, mm-1, 1); try{ renderTradeCalendar(); }catch(e){}
+      });
+      el.addEventListener('click', e=>{
+        const del = e.target.closest('[data-mddel]'); if(!del) return;
+        if(db.marketDays) delete db.marketDays[del.dataset.mddel];
+        mdChanged(); renderMdList(); syncForm();
+      });
+    }
+    const dateIn = el.querySelector('#mdDate');
+    dateIn.value = prefKey || todayKey();
+    el.querySelector('#mdLabel').value = '';
+    el.querySelector('#mdType').value = 'holiday';
+    const ex0 = (db.marketDays||{})[dateIn.value];
+    if(ex0){ el.querySelector('#mdType').value = ex0.type; el.querySelector('#mdLabel').value = ex0.label||''; }
+    el.querySelector('#mdAdd').textContent = ex0 ? 'Update' : 'Add';
+    el.querySelector('#mdMsg').textContent = '';
+    renderMdList();
+    el.classList.add('open');
+  }
+  function renderMdList(){
+    const host = document.getElementById('mdList'); if(!host) return;
+    const keys = Object.keys(db.marketDays||{}).sort();
+    host.innerHTML = keys.length ? keys.map(k=>{
+      const m = db.marketDays[k];
+      return `<div class="mkd-row"><span class="d">${mdEsc(mdFmt(k))}</span><span class="mkd-badge ${m.type==='special'?'special':''}">${m.type==='special'?'Special':'Holiday'}</span><span class="l">${mdEsc(m.label||'')}</span><button class="mkd-del" type="button" data-mddel="${k}" aria-label="Remove">✕</button></div>`;
+    }).join('') : '<div class="mkd-empty">Nothing added yet.</div>';
+  }
+  const tcalMarketBtn = document.getElementById('tcalMarketBtn');
+  if(tcalMarketBtn) tcalMarketBtn.addEventListener('click', ()=> openMarketDaysModal(null));
   function renderTcalSelectedTrades(){
     const el = document.getElementById('tcalSelectedTrades');
     if(!el) return;
@@ -10980,11 +11117,12 @@ body.sidebar-open{ overflow:hidden; }
     }
     function streakInfo(){
       const s = activitySet();
+      const MD = db.marketDays || {}; // holidays + special sessions: never a "missed day"; a special session you traded still counts
       let streak = 0, cur = new Date(); cur.setHours(0,0,0,0);
       for(let i=0;i<500;i++){
-        const k = iso(cur), wk = cur.getDay()===0 || cur.getDay()===6;
-        if(s.has(k)) streak++;
-        else if(!wk && i>0) break;          // a missed weekday ends it (today may still be pending)
+        const k = iso(cur), wk = cur.getDay()===0 || cur.getDay()===6 || !!MD[k];
+        if(s.has(k)) streak++;              // Mon–Fri count as trading days; an occasional Sat/Sun session counts too
+        else if(!wk && i>0) break;          // a missed Mon–Fri ends it (today may still be pending); weekends are off-days, never a miss
         cur.setDate(cur.getDate()-1);
       }
       let best = 0, run = 0;
@@ -10992,7 +11130,7 @@ body.sidebar-open{ overflow:hidden; }
         const first = Array.from(s).sort()[0];
         const d = new Date(first+'T00:00:00'), end = new Date(); end.setHours(0,0,0,0);
         while(d<=end){
-          const wk = d.getDay()===0 || d.getDay()===6;
+          const wk = d.getDay()===0 || d.getDay()===6 || !!MD[iso(d)];
           if(s.has(iso(d))){ run++; if(run>best) best = run; } else if(!wk){ run = 0; }
           d.setDate(d.getDate()+1);
         }
@@ -11367,20 +11505,43 @@ body.sidebar-open{ overflow:hidden; }
       const today = new Date(); today.setHours(0,0,0,0);
       const start = mondayOf(today); start.setDate(start.getDate() - 7*(weeks-1));
       const mxAbs = Math.max.apply(null, [1].concat(Object.keys(pd).map(k=> Math.abs(pd[k]))));
+      const startKey = iso(start);
+      // Trading calendar: Mon–Fri always. Sat/Sun rows only appear when you actually
+      // traded on one in this window (special / occasional sessions).
+      const MD = db.marketDays || {};
+      const isSpecial = k => !!(MD[k] && MD[k].type==='special');
+      const isTradedDay = k => pd[k]!==undefined || (td[k]||0)>0 || isSpecial(k);
+      const specKeys = {}; Object.keys(MD).forEach(k=>{ if(isSpecial(k)) specKeys[k] = 1; });
+      let showSat = false, showSun = false;
+      Object.keys(Object.assign({}, pd, td, specKeys)).forEach(k=>{
+        if(k<startKey || !isTradedDay(k)) return;
+        const dw = new Date(k+'T00:00:00').getDay();
+        if(dw===6) showSat = true; else if(dw===0) showSun = true;
+      });
+      const offs = [0,1,2,3,4].concat(showSat?[5]:[], showSun?[6]:[]);
       let html = '';
-      for(let i=0;i<weeks*7;i++){
-        const d = new Date(start); d.setDate(start.getDate()+i);
-        const k = iso(d), v = pd[k], future = d>today;
-        let cls = '';
-        if(v!==undefined){ const r = Math.abs(v)/mxAbs, lv = r>.66?3:r>.33?2:1; cls = (v>=0?'w':'l')+lv; }
-        else if(act.has(k)) cls = 'n';
-        const tip = fmtDay(k)+(v!==undefined ? ' · '+fmtPnl(v)+' · '+(td[k]||0)+' trade'+((td[k]||0)===1?'':'s') : act.has(k) ? ' · journaled' : '');
-        html += `<i class="${cls} ${future?'future':''} ${d.getTime()===today.getTime()?'today':''}" title="${esc(tip)}"></i>`;
+      for(let w=0; w<weeks; w++){
+        offs.forEach(off=>{
+          const d = new Date(start); d.setDate(start.getDate()+w*7+off);
+          const k = iso(d), v = pd[k], future = d>today, wkend = off>=5, md = MD[k], hol = !!(md && md.type==='holiday'), spec = isSpecial(k);
+          let cls = '';
+          if(v!==undefined){ const r = Math.abs(v)/mxAbs, lv = r>.66?3:r>.33?2:1; cls = (v>=0?'w':'l')+lv; }
+          else if(wkend){ if(isTradedDay(k)) cls = 'n'; else { html += '<i class="off"></i>'; return; } }
+          else if(act.has(k)) cls = 'n';
+          else if(hol) cls = 'hol';
+          if(wkend || spec) cls += ' wkend';
+          const tip = fmtDay(k)+(hol ? ' · Holiday'+(md.label?': '+md.label:'') : (wkend||spec) ? ' · Special session'+(md && md.label?': '+md.label:'') : '')+(v!==undefined ? ' · '+fmtPnl(v)+' · '+(td[k]||0)+' trade'+((td[k]||0)===1?'':'s') : act.has(k) ? ' · journaled' : '');
+          html += `<i class="${cls} ${future?'future':''} ${d.getTime()===today.getTime()?'today':''}" title="${esc(tip)}"></i>`;
+        });
       }
       host.style.gridTemplateColumns = 'repeat('+weeks+',minmax(0,1fr))';
+      host.style.gridTemplateRows = 'repeat('+offs.length+',1fr)';
       host.innerHTML = html;
-      const st = streakInfo(), cnt = Object.keys(pd).filter(k=> k>=iso(start)).length;
-      const sub = $('fvHeatSub'); if(sub) sub.textContent = cnt+' trading day'+(cnt===1?'':'s')+' · '+weeks+' weeks';
+      const st = streakInfo(), cnt = Object.keys(pd).filter(k=> k>=startKey).length;
+      const sub = $('fvHeatSub');
+      if(sub) sub.textContent = cnt+' trading day'+(cnt===1?'':'s')+' · '+weeks+' weeks'+(st.streak>0 ? ' · 🔥 '+st.streak+'-day streak' : '');
+      const note = $('fvHeatNote');
+      if(note) note.textContent = (showSat||showSun) ? 'Mon–Fri trading days · dotted outline = special session · hatched = holiday' : 'Mon–Fri trading days · hatched = holiday · special sessions show with a dotted outline';
     }
 
     function computeInsights(){
@@ -11448,6 +11609,7 @@ body.sidebar-open{ overflow:hidden; }
     const eqAll = $('fvEqLink'); if(eqAll) eqAll.addEventListener('click', ()=> openTradeSection('overview'));
 
     let rzT = null;
+    window.addEventListener('fv-marketdays', ()=>{ try{ renderFvHome(); }catch(e){} });
     window.addEventListener('resize', ()=>{ clearTimeout(rzT); rzT = setTimeout(()=>{ if(currentView()==='home'){ try{ renderEquity(); renderHeat(); }catch(e){} } }, 180); });
 
     // hide/show ₹ amounts: keep Home, sidebar card and hero in sync with the eye toggle / settings switch
