@@ -2377,6 +2377,58 @@ header.topbar{
 #syncStatus{ padding:6px 11px; border-radius:999px; background:var(--surface); border:1px solid var(--line); max-width:240px; }
 #syncStatus #syncStatusText{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
+/* ---------- Market sentiment + live notes ---------- */
+.mood-row{ gap:6px; flex-wrap:wrap; }
+.mood-row .picker-btn{ flex:1 1 0; min-width:62px; display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px; font-family:'Inter',system-ui,sans-serif; }
+.mood-row .picker-btn .e{ font-size:20px; line-height:1; }
+.mood-row .picker-btn small{ font-size:9.5px; font-weight:700; letter-spacing:.01em; }
+.sent-row{ display:flex; flex-wrap:wrap; gap:6px; }
+.sent-chip{ font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:var(--surface-raised); border:1px solid var(--line); color:var(--ink-dim); white-space:nowrap; }
+.sent-chip.with{ background:var(--teal-bg); border-color:var(--teal); color:var(--teal-dim); }
+.sent-chip.against{ background:var(--rose-bg); border-color:var(--rose); color:var(--rose-dim); }
+.ln-types{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+.ln-type{ border:1px solid var(--line); background:var(--surface); color:var(--ink-dim); border-radius:999px; padding:5px 11px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Inter',system-ui,sans-serif; }
+.ln-type.on{ background:var(--accent-bg); border-color:var(--accent); color:var(--accent-dim); }
+.ln-type.t-mistake.on{ background:var(--rose-bg); border-color:var(--rose); color:var(--rose-dim); }
+.ln-input{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:start; }
+.ln-input textarea{ grid-column:1 / -1; min-height:54px; resize:vertical; font-family:'Inter',system-ui,sans-serif; }
+.ln-input .ln-price{ width:100%; }
+.ln-input .ln-price-wrap{ display:flex; gap:8px; grid-column:1 / -1; }
+.ln-input .ln-price-wrap input{ flex:1; min-width:0; }
+.ln-input .ln-add{ white-space:nowrap; padding:9px 18px; }
+.ln-list{ margin-top:12px; display:flex; flex-direction:column; gap:8px; max-height:320px; overflow-y:auto; }
+.ln-item{ display:flex; gap:10px; align-items:flex-start; padding:9px 11px; border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:10px; background:var(--surface-raised); }
+.ln-item.t-mistake{ border-left-color:var(--rose); } .ln-item.t-lesson{ border-left-color:var(--teal); } .ln-item.t-feeling{ border-left-color:var(--ink-faint); }
+.ln-ico{ font-size:15px; line-height:1.3; }
+.ln-body{ flex:1; min-width:0; }
+.ln-text{ font-size:13px; line-height:1.45; color:var(--ink); word-break:break-word; }
+.ln-meta{ font-size:10.5px; color:var(--ink-faint); font-weight:600; margin-top:3px; }
+.ln-del{ border:none; background:transparent; color:var(--ink-faint); cursor:pointer; font-size:14px; padding:0 2px; }
+.ln-del:hover{ color:var(--rose-dim); }
+.ln-empty{ font-size:12px; color:var(--ink-faint); text-align:center; padding:8px 0; }
+.qn-sheet{ max-width:520px; }
+.qn-sel{ width:100%; margin-bottom:12px; }
+.fv-note-btn{ margin-left:8px; font-size:12px; border:1px solid var(--line); background:var(--surface); color:var(--ink-dim); border-radius:8px; padding:2px 8px; font-weight:700; cursor:pointer; }
+.fv-note-btn:hover{ border-color:var(--accent); color:var(--accent-dim); }
+.fv-pulse-moods{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+.fv-mood-btn{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:10px 4px; border-radius:12px; border:1px solid var(--line); background:var(--surface-raised); color:var(--ink-dim); cursor:pointer; font-family:'Inter',system-ui,sans-serif; transition:transform .12s var(--ease), border-color .12s; }
+.fv-mood-btn:hover{ border-color:var(--ink-faint); transform:translateY(-1px); }
+.fv-mood-btn .e{ font-size:24px; line-height:1; } .fv-mood-btn small{ font-size:10.5px; font-weight:700; }
+.fv-mood-btn.on{ background:var(--accent-bg); border-color:var(--accent); color:var(--accent-dim); box-shadow:inset 0 0 0 1px var(--accent); }
+.fv-pulse-ctl{ display:flex; flex-wrap:wrap; gap:14px; margin-top:12px; align-items:center; }
+.fv-seg{ display:inline-flex; gap:2px; padding:3px; border-radius:11px; background:var(--surface-raised); border:1px solid var(--line); }
+.fv-seg button{ border:none; background:transparent; color:var(--ink-dim); font-size:11.5px; font-weight:700; padding:5px 11px; border-radius:8px; cursor:pointer; font-family:'Inter',system-ui,sans-serif; }
+.fv-seg button.on{ background:var(--surface); color:var(--ink); box-shadow:var(--shadow-sm), 0 0 0 1px var(--line); }
+.fv-seg-lbl{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-right:6px; }
+.fv-pulse-note{ flex:1; min-width:180px; }
+.fv-pulse-strip{ display:flex; gap:6px; margin-top:14px; align-items:flex-end; flex-wrap:wrap; }
+.fv-pulse-day{ display:flex; flex-direction:column; align-items:center; gap:4px; font-size:9.5px; color:var(--ink-faint); font-weight:700; }
+.fv-pulse-day i{ width:22px; height:22px; border-radius:7px; display:block; background:var(--surface-raised); border:1px solid var(--line); font-style:normal; font-size:12px; line-height:20px; text-align:center; }
+.fv-pulse-day b{ width:22px; height:3px; border-radius:2px; background:var(--line); display:block; }
+.fv-pulse-day b.pos{ background:var(--teal); } .fv-pulse-day b.neg{ background:var(--rose); }
+.fv-pulse-edge{ font-size:12px; color:var(--ink-dim); margin-top:12px; line-height:1.5; }
+@media (max-width:520px){ .mood-row .picker-btn{ min-width:56px; } }
+
 /* ---------- 4a · Trading group in the sidebar (Home + Trade Log shortcuts in one nav) ---------- */
 html:root body nav.tabs .tab-btn.tab-compat{ display:none !important; }
 .tab-btn.tab-sub{ font-size:13px; padding:9px 12px; font-weight:600; }
@@ -3178,6 +3230,21 @@ body.sidebar-open{ overflow:hidden; }
         <div class="fv-heat-legend"><span>Loss</span><i style="background:var(--rose)"></i><i style="background:color-mix(in srgb, var(--rose) 45%, var(--surface))"></i><i style="background:var(--surface-raised);border:1px solid var(--line)"></i><i style="background:color-mix(in srgb, var(--teal) 45%, var(--surface))"></i><i style="background:var(--teal)"></i><span>Profit</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;"><i style="background:color-mix(in srgb, var(--accent) 30%, var(--surface))"></i>Journaled</span></div>
       </section>
 
+      <section class="fv-panel" id="fvPanelPulse">
+        <div class="fv-panel-head">
+          <div><div class="fv-panel-title">Market pulse</div><div class="fv-panel-sub" id="fvPulseSub">How is the market feeling today?</div></div>
+          <button class="fv-mini-btn" id="fvPulseNote" type="button">📝 Trade note</button>
+        </div>
+        <div class="fv-pulse-moods" id="fvPulseMoods"></div>
+        <div class="fv-pulse-ctl">
+          <div><span class="fv-seg-lbl">Index</span><span class="fv-seg" id="fvPulseTrend"><button type="button" data-v="up">↗ Up</button><button type="button" data-v="side">→ Side</button><button type="button" data-v="down">↘ Down</button></span></div>
+          <div><span class="fv-seg-lbl">Volatility</span><span class="fv-seg" id="fvPulseVol"><button type="button" data-v="calm">Calm</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="wild">Wild</button></span></div>
+          <input type="text" class="fv-pulse-note" id="fvPulseText" maxlength="120" placeholder="One line on today's market (optional)">
+        </div>
+        <div class="fv-pulse-strip" id="fvPulseStrip"></div>
+        <div class="fv-pulse-edge" id="fvPulseEdge"></div>
+      </section>
+
       <section class="fv-panel" id="fvPanelInsights">
         <div class="fv-panel-head"><div class="fv-panel-title">Insights from your journal</div></div>
         <div class="fv-insights" id="fvInsights"></div>
@@ -3628,7 +3695,7 @@ body.sidebar-open{ overflow:hidden; }
           <div class="td-stat-grid" id="tdCostsStats"></div>
           <div id="tdCostsBreakdown" style="margin-top:10px;"></div>
         </div>
-<div class="tr-group"><div class="tr-seg"><button class="tr-seg-btn on" data-g="g6" data-p="0">Plan followed</button><button class="tr-seg-btn" data-g="g6" data-p="1">System</button><button class="tr-seg-btn" data-g="g6" data-p="2">Psychology</button></div><div class="tr-pane on" data-g="g6" data-p="0">
+<div class="tr-group"><div class="tr-seg"><button class="tr-seg-btn on" data-g="g6" data-p="0">Plan followed</button><button class="tr-seg-btn" data-g="g6" data-p="1">System</button><button class="tr-seg-btn" data-g="g6" data-p="2">Psychology</button><button class="tr-seg-btn" data-g="g6" data-p="3">Market</button></div><div class="tr-pane on" data-g="g6" data-p="0">
         <div class="td-card">
           <div id="tdPlanAdherence"></div>
         </div>
@@ -3639,6 +3706,12 @@ body.sidebar-open{ overflow:hidden; }
 </div><div class="tr-pane" data-g="g6" data-p="2">
         <div class="td-card">
           <div id="tdPsychBreakdown"></div>
+        </div>
+</div><div class="tr-pane" data-g="g6" data-p="3">
+        <div class="td-card">
+          <div class="td-card-sub" style="display:block; margin-bottom:10px;">Does trading with the market actually pay you? Log a market mood on each trade to find out.</div>
+          <div id="tdMarketAlign"></div>
+          <div id="tdMarketMood" style="margin-top:14px;"></div>
         </div>
 </div></div>
 </div>
@@ -3735,6 +3808,18 @@ body.sidebar-open{ overflow:hidden; }
             </div>
           </div>
           <div class="modal-field"><label>Why this trade?</label><textarea id="trThesisWhy"></textarea></div>
+      <details class="form-section" id="trSentSec" open><summary>Market sentiment <span class="tr-opt">10 seconds · shows up in your Analysis</span></summary><div class="form-section-body">
+          <div class="modal-field"><label>Market mood right now <span style="font-weight:400; color:var(--ink-faint);">tap again to clear</span></label><div class="picker-row mood-row" id="trMktMood"><div class="picker-btn" data-val="-2"><span class="e">😨</span><small>Very bearish</small></div><div class="picker-btn" data-val="-1"><span class="e">😟</span><small>Bearish</small></div><div class="picker-btn" data-val="0"><span class="e">😐</span><small>Neutral</small></div><div class="picker-btn" data-val="1"><span class="e">🙂</span><small>Bullish</small></div><div class="picker-btn" data-val="2"><span class="e">🚀</span><small>Very bullish</small></div></div></div>
+          <div class="modal-row">
+            <div class="modal-field"><label>Nifty / index trend</label><div class="picker-row" id="trIdxTrend"><div class="picker-btn" data-val="up" style="width:auto; padding:0 12px;">↗ Up</div><div class="picker-btn" data-val="side" style="width:auto; padding:0 12px;">→ Sideways</div><div class="picker-btn" data-val="down" style="width:auto; padding:0 12px;">↘ Down</div></div></div>
+            <div class="modal-field"><label>Volatility</label><div class="picker-row" id="trMktVol"><div class="picker-btn" data-val="calm" style="width:auto; padding:0 12px;">Calm</div><div class="picker-btn" data-val="normal" style="width:auto; padding:0 12px;">Normal</div><div class="picker-btn" data-val="wild" style="width:auto; padding:0 12px;">Wild</div></div></div>
+          </div>
+          <div class="modal-field"><label>Sector strength</label><div class="picker-row" id="trSectorStr"><div class="picker-btn" data-val="strong" style="width:auto; padding:0 12px;">Strong</div><div class="picker-btn" data-val="neutral" style="width:auto; padding:0 12px;">Neutral</div><div class="picker-btn" data-val="weak" style="width:auto; padding:0 12px;">Weak</div></div></div>
+          <div class="tr-risk-indicator" id="trAlignInd" style="display:none;"></div>
+      </div></details>
+      <details class="form-section" id="trLiveSec"><summary>Live notes <span class="tr-opt" id="trLiveCount">log thoughts while the trade is on</span></summary><div class="form-section-body">
+          <div id="trLiveBox"></div>
+      </div></details>
       <details class="form-section"><summary>2 · Exit <span class="tr-opt">when the trade is closed</span></summary><div class="form-section-body">
 <div class="modal-row">            <div class="modal-field"><label>Exit price</label><input type="number" id="trExitPrice" step="0.01"></div>            <div class="modal-field"><label>Exit date & price</label><input type="datetime-local" id="trExitDT"></div></div>
 <div class="modal-row">            <div class="modal-field"><label>P&L (₹) <span style="font-weight:400; color:var(--ink-faint);">auto</span></label><input type="number" id="trPnl" step="0.01"></div>            <div class="modal-field"><label>R-multiple <span style="font-weight:400; color:var(--ink-faint);">auto</span></label><input type="number" id="trRMultiple" step="0.1"></div></div>
@@ -4045,6 +4130,7 @@ body.sidebar-open{ overflow:hidden; }
       <div class="qa-title">Quick actions</div>
       <div class="qa-grid">
         <button class="qa-item up" data-qa="trade" type="button"><span class="qa-ico">↗</span><span>New trade<small>Log entry, exit &amp; review</small></span></button>
+        <button class="qa-item up" data-qa="tnote" type="button"><span class="qa-ico">📝</span><span>Trade note<small>Log a thought on a live trade</small></span></button>
         <button class="qa-item" data-qa="note" type="button"><span class="qa-ico">✎</span><span>New note<small>Ideas, rules, reviews</small></span></button>
         <button class="qa-item" data-qa="search" type="button"><span class="qa-ico">⌕</span><span>Search<small>Trades &amp; notes</small></span></button>
         <button class="qa-item" data-qa="import" type="button"><span class="qa-ico">⬆</span><span>Import trades<small>Broker file or sync</small></span></button>
@@ -4482,6 +4568,179 @@ body.sidebar-open{ overflow:hidden; }
   setupYesNo('trSysYes','trSysNo');
   setupYesNo('trPlanFollowed','trPlanBroken');
 
+
+  // ================= Market sentiment + live trade notes =================
+  const FV_MOODS = [
+    {v:'-2', e:'😨', l:'Very bearish'}, {v:'-1', e:'😟', l:'Bearish'}, {v:'0', e:'😐', l:'Neutral'}, {v:'1', e:'🙂', l:'Bullish'}, {v:'2', e:'🚀', l:'Very bullish'}
+  ];
+  const FV_NOTE_TYPES = [
+    {k:'thought', e:'💭', l:'Thought'}, {k:'price', e:'📈', l:'Price action'}, {k:'feeling', e:'😰', l:'Feeling'},
+    {k:'adjust', e:'🔧', l:'Adjustment'}, {k:'mistake', e:'⚠️', l:'Mistake'}, {k:'lesson', e:'💡', l:'Lesson'}
+  ];
+  const FV_TREND = {up:'↗ Index up', side:'→ Index sideways', down:'↘ Index down'};
+  const FV_VOL = {calm:'Calm', normal:'Normal vol', wild:'Wild vol'};
+  const FV_SECT = {strong:'Strong sector', neutral:'Neutral sector', weak:'Weak sector'};
+  function fvMoodInfo(v){ return FV_MOODS.find(m=>m.v===String(v)) || null; }
+  // with / against / mixed — was the trade going WITH the market read you logged?
+  function fvAlignment(t){
+    let sc = 0, any = false;
+    if(t.mktMood!==undefined && t.mktMood!=='' && t.mktMood!==null){ sc += Math.sign(parseInt(t.mktMood,10)||0); any = true; }
+    if(t.idxTrend){ sc += t.idxTrend==='up' ? 1 : t.idxTrend==='down' ? -1 : 0; any = true; }
+    if(!any) return null;
+    const v = sc * (t.direction==='short' ? -1 : 1);
+    return v>0 ? 'with' : v<0 ? 'against' : 'mixed';
+  }
+  window.FV_MOODS = FV_MOODS; window.fvMoodInfo = fvMoodInfo; window.fvTradeAlignment = fvAlignment;
+  window.FV_NOTE_TYPES = FV_NOTE_TYPES;
+  function fvSentChipsHtml(t){
+    const out = [], mi = fvMoodInfo(t.mktMood);
+    if(mi) out.push(`<span class="sent-chip">${mi.e} ${mi.l}</span>`);
+    if(t.idxTrend && FV_TREND[t.idxTrend]) out.push(`<span class="sent-chip">${FV_TREND[t.idxTrend]}</span>`);
+    if(t.mktVol && FV_VOL[t.mktVol]) out.push(`<span class="sent-chip">${FV_VOL[t.mktVol]}</span>`);
+    if(t.sectorStr && FV_SECT[t.sectorStr]) out.push(`<span class="sent-chip">${FV_SECT[t.sectorStr]}</span>`);
+    const al = fvAlignment(t);
+    if(al==='with') out.push('<span class="sent-chip with">✓ With the market</span>');
+    else if(al==='against') out.push('<span class="sent-chip against">✗ Against the market</span>');
+    return out.join('');
+  }
+  function fvNoteTime(ts){ const d = new Date(ts); return isNaN(d) ? '' : d.toLocaleString('en-IN',{day:'numeric', month:'short', hour:'numeric', minute:'2-digit'}); }
+  function fvSinceEntry(ts, entryMs){
+    if(!entryMs) return '';
+    const m = Math.round((new Date(ts).getTime()-entryMs)/60000);
+    if(isNaN(m) || m<0) return '';
+    if(m<60) return '+'+m+'m in';
+    if(m<2880) return '+'+Math.floor(m/60)+'h '+(m%60)+'m in';
+    return '+'+Math.floor(m/1440)+'d in';
+  }
+  function fvNoteItemHtml(n, entryMs, withDel){
+    const ty = FV_NOTE_TYPES.find(x=>x.k===n.type) || FV_NOTE_TYPES[0];
+    const meta = [fvNoteTime(n.ts), n.price ? '@ '+escapeHtml(String(n.price)) : '', fvSinceEntry(n.ts, entryMs)].filter(Boolean).join(' · ');
+    return `<div class="ln-item t-${ty.k}"><span class="ln-ico">${ty.e}</span><div class="ln-body"><div class="ln-text">${escapeHtml(n.text||'').replace(/\n/g,'<br>')}</div><div class="ln-meta">${ty.l} · ${meta}</div></div>${withDel?`<button class="ln-del" type="button" data-ln-del="${escapeHtml(n.id)}" aria-label="Delete note">✕</button>`:''}</div>`;
+  }
+  function fvTradeEntryMs(t){ const x = t && (t.entryDT || t.date); const d = x ? new Date(x.length<=10 ? x+'T09:15:00' : x) : null; return d && !isNaN(d) ? d.getTime() : 0; }
+  function fvNotesTimelineHtml(t){
+    const list = (t.updates||[]).slice().sort((a,b)=> a.ts<b.ts?1:-1), em = fvTradeEntryMs(t);
+    return list.length ? `<div class="ln-list" style="max-height:none;">${list.map(n=>fvNoteItemHtml(n, em, false)).join('')}</div>` : '';
+  }
+  // Reusable quick-note widget: type chips + one box (Enter saves) + optional price + timeline.
+  function fvNotesWidget(host, ctx){
+    let type = 'thought';
+    function render(focus){
+      const list = (ctx.get()||[]).slice().sort((a,b)=> a.ts<b.ts?1:-1), em = ctx.entryMs ? ctx.entryMs() : 0;
+      host.innerHTML = `<div class="ln-types">${FV_NOTE_TYPES.map(x=>`<button type="button" class="ln-type t-${x.k} ${x.k===type?'on':''}" data-ty="${x.k}">${x.e} ${x.l}</button>`).join('')}</div>
+        <div class="ln-input"><textarea rows="2" placeholder="What's happening? Enter to save · Shift+Enter for a new line"></textarea>
+          <div class="ln-price-wrap"><input type="number" step="0.01" class="ln-price" placeholder="@ price (optional)"><button class="btn primary ln-add" type="button">Add note</button></div></div>
+        <div class="ln-list">${list.length ? list.map(n=>fvNoteItemHtml(n, em, true)).join('') : '<div class="ln-empty">No notes yet — jot down what you see, feel or change while the trade is on.</div>'}</div>`;
+      const ta = host.querySelector('textarea'), pr = host.querySelector('.ln-price');
+      const add = ()=>{
+        const text = ta.value.trim(); if(!text){ ta.focus(); return; }
+        ctx.add({id:'n_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), ts:new Date().toISOString(), type, text, price: pr.value || ''});
+        render(true);
+      };
+      host.querySelector('.ln-add').addEventListener('click', add);
+      ta.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); add(); } });
+      host.querySelectorAll('.ln-type').forEach(b=> b.addEventListener('click', ()=>{ type = b.dataset.ty; host.querySelectorAll('.ln-type').forEach(x=>x.classList.toggle('on', x===b)); ta.focus(); }));
+      host.querySelectorAll('[data-ln-del]').forEach(b=> b.addEventListener('click', ()=>{ ctx.del(b.dataset.lnDel); render(); }));
+      if(focus) ta.focus();
+      if(ctx.onChange) ctx.onChange();
+    }
+    render();
+    return {render};
+  }
+  window.fvNotesWidget = fvNotesWidget;
+
+  // ---- trade-form wiring ----
+  let trUpdates = [];
+  let trNotesW = null;
+  function updateAlignInd(){
+    const el = document.getElementById('trAlignInd'); if(!el) return;
+    const al = fvAlignment({mktMood:getPickerValue('trMktMood'), idxTrend:getPickerValue('trIdxTrend'), direction:getPickerValue('trDirection')||'long'});
+    if(!al){ el.style.display='none'; el.innerHTML=''; return; }
+    const dir = (getPickerValue('trDirection')||'long')==='short' ? 'short' : 'long';
+    el.style.display = '';
+    el.innerHTML = al==='with' ? `✅ This ${dir} is <b>with</b> the market read — the easier side to trade.`
+      : al==='against' ? `⚠️ This ${dir} is <b>against</b> the market read — size down or have a tighter stop.`
+      : `➖ Mixed / neutral read — no clear market tailwind for this ${dir}.`;
+  }
+  function setupToggleRow(id){
+    const c = document.getElementById(id); if(!c) return;
+    c.querySelectorAll('.picker-btn').forEach(b=> b.addEventListener('click', ()=>{
+      const was = b.classList.contains('on');
+      c.querySelectorAll('.picker-btn').forEach(x=>x.classList.remove('on'));
+      if(!was) b.classList.add('on');
+      updateAlignInd();
+    }));
+  }
+  ['trMktMood','trIdxTrend','trMktVol','trSectorStr'].forEach(setupToggleRow);
+  document.querySelectorAll('#trDirection .picker-btn').forEach(b=> b.addEventListener('click', updateAlignInd));
+  (function initFormNotes(){
+    const host = document.getElementById('trLiveBox'); if(!host) return;
+    trNotesW = fvNotesWidget(host, {
+      get: ()=> trUpdates,
+      add: n=>{ trUpdates.push(n); },
+      del: id=>{ trUpdates = trUpdates.filter(x=>x.id!==id); },
+      entryMs: ()=>{ const v = (document.getElementById('trEntryDT')||{}).value || (document.getElementById('trDate')||{}).value; return fvTradeEntryMs({entryDT:v}); },
+      onChange: ()=>{ const c = document.getElementById('trLiveCount'); if(c) c.textContent = trUpdates.length ? trUpdates.length+' note'+(trUpdates.length===1?'':'s')+' logged' : 'log thoughts while the trade is on'; }
+    });
+  })();
+  function fvPrefillMoodFromPulse(){
+    const pm = (db.marketMood||{})[todayKey()] || null;
+    setPickerValue('trMktMood', pm && pm.mood!==undefined ? String(pm.mood) : '');
+    setPickerValue('trIdxTrend', pm ? (pm.trend||'') : '');
+    setPickerValue('trMktVol', pm ? (pm.vol||'') : '');
+    setPickerValue('trSectorStr', '');
+    updateAlignInd();
+  }
+
+  // ---- Quick-note modal: add a note to any trade in two taps (open trades first) ----
+  window.fvQuickNote = function(tradeId){
+    const trades = db.trades||[];
+    let el = document.getElementById('qnModal');
+    if(!el){
+      el = document.createElement('div'); el.className = 'modal-backdrop'; el.id = 'qnModal';
+      el.innerHTML = '<div class="modal-sheet qn-sheet" role="dialog" aria-label="Trade note"><div class="modal-title">Trade note</div><div id="qnBody"></div><div class="modal-actions" style="margin-top:14px;"><button class="btn ghost" type="button" id="qnClose">Done</button></div></div>';
+      document.body.appendChild(el);
+      const close = ()=> el.classList.remove('open');
+      el.addEventListener('click', e=>{ if(e.target===el) close(); });
+      el.querySelector('#qnClose').addEventListener('click', close);
+      document.addEventListener('keydown', e=>{ if(e.key==='Escape' && el.classList.contains('open')) close(); });
+    }
+    const body = el.querySelector('#qnBody');
+    if(!trades.length){ body.innerHTML = '<div class="ln-empty">Log a trade first, then add live notes to it here.</div>'; el.classList.add('open'); return; }
+    const byRecent = (a,b)=> String(tradeBasisDate(b)||'').localeCompare(String(tradeBasisDate(a)||'')) || String(b.id).localeCompare(String(a.id));
+    const open = trades.filter(t=>!t.exitDT).sort(byRecent), closed = trades.filter(t=>t.exitDT).sort(byRecent).slice(0,12);
+    const label = t=> (t.ticker||'Trade')+' · '+(t.direction==='short'?'Short':'Long')+' · '+(t.exitDT?'closed ':'open ')+(tradeBasisDate(t)||'');
+    const sel0 = tradeId || (open[0]||closed[0]).id;
+    body.innerHTML = `<select class="qn-sel" id="qnSel">${open.length?`<optgroup label="Open trades">${open.map(t=>`<option value="${escapeHtml(t.id)}">${escapeHtml(label(t))}</option>`).join('')}</optgroup>`:''}${closed.length?`<optgroup label="Recently closed">${closed.map(t=>`<option value="${escapeHtml(t.id)}">${escapeHtml(label(t))}</option>`).join('')}</optgroup>`:''}</select><div id="qnWidget"></div>`;
+    const sel = body.querySelector('#qnSel');
+    if(![...sel.options].some(o=>o.value===sel0)){ const t0 = trades.find(t=>t.id===sel0); if(t0){ const o = document.createElement('option'); o.value = t0.id; o.textContent = label(t0); sel.insertBefore(o, sel.firstChild); } }
+    sel.value = sel0;
+    function mount(){
+      const id = sel.value, host = body.querySelector('#qnWidget');
+      const tr = ()=> (db.trades||[]).find(t=>t.id===id);
+      fvNotesWidget(host, {
+        get: ()=> (tr()||{}).updates || [],
+        add: n=>{ const t = tr(); if(!t) return; t.updates = (t.updates||[]).concat([n]); fvAfterNoteChange(id); },
+        del: nid=>{ const t = tr(); if(!t) return; t.updates = (t.updates||[]).filter(x=>x.id!==nid); fvAfterNoteChange(id); },
+        entryMs: ()=> fvTradeEntryMs(tr())
+      });
+    }
+    sel.addEventListener('change', mount);
+    mount();
+    el.classList.add('open');
+    setTimeout(()=>{ const ta = body.querySelector('textarea'); if(ta) ta.focus(); }, 60);
+  };
+  function fvAfterNoteChange(id){
+    saveDB();
+    if(editingTradeId===id){
+      const t = (db.trades||[]).find(x=>x.id===id);
+      trUpdates = t ? (t.updates||[]).slice() : [];
+      if(trNotesW) trNotesW.render();
+    }
+    try{ renderTradesList(); }catch(e){}
+    try{ window.dispatchEvent(new Event('fv-marketdays')); }catch(e){}
+  }
+
   let trScreenshotData = null;
   document.getElementById('trScreenshot').addEventListener('change', (e)=>{
     const file = e.target.files[0];
@@ -4523,6 +4782,8 @@ body.sidebar-open{ overflow:hidden; }
     const slipInd = document.getElementById('trSlippageIndicator'); if(slipInd){ slipInd.style.display='none'; slipInd.innerHTML=''; }
     ['trPartialQty','trPartialPrice','trPartialDT'].forEach(id=>{ document.getElementById(id).value=''; });
     setChips('trPartialExitReasonChips', []);
+    trUpdates = []; if(trNotesW) trNotesW.render();
+    fvPrefillMoodFromPulse();
     updatePartialExitAvailability();
   }
 
@@ -4576,6 +4837,11 @@ body.sidebar-open{ overflow:hidden; }
       grade: getPickerValue('trGrade'),
       verdictTags: getSelectedChips('trVerdictChips'),
       lesson: document.getElementById('trLesson').value,
+      mktMood: getPickerValue('trMktMood'),
+      idxTrend: getPickerValue('trIdxTrend'),
+      mktVol: getPickerValue('trMktVol'),
+      sectorStr: getPickerValue('trSectorStr'),
+      updates: trUpdates.slice(),
       screenshot: trScreenshotData
     };
   }
@@ -4613,6 +4879,9 @@ body.sidebar-open{ overflow:hidden; }
     document.getElementById('trSysReason').style.display = t.followingSystem==='no' ? 'block':'none';
     document.getElementById('trPlanFollowed').classList.toggle('on', t.planTag==='plan-followed');
     document.getElementById('trPlanBroken').classList.toggle('on', t.planTag==='plan-broken');
+    setPickerValue('trMktMood', t.mktMood===undefined||t.mktMood===null ? '' : String(t.mktMood)); setPickerValue('trIdxTrend', t.idxTrend||''); setPickerValue('trMktVol', t.mktVol||''); setPickerValue('trSectorStr', t.sectorStr||'');
+    updateAlignInd();
+    trUpdates = (t.updates||[]).slice(); if(trNotesW) trNotesW.render();
     trScreenshotData = t.screenshot || null;
     document.getElementById('trScreenshotPreview').innerHTML = trScreenshotData ? `<img src="${trScreenshotData}" style="max-width:100%; border-radius:6px; border:1px solid var(--line);">` : '';
     // Existing values loaded as-is. A field only gets frozen (excluded from
@@ -4800,6 +5069,10 @@ body.sidebar-open{ overflow:hidden; }
     } else {
       db.trades.push({id:'trade_'+Date.now(), ...data});
     }
+    if(data.mktMood!=='' && data.date){ // first trade of the day with a mood seeds the daily Market pulse
+      db.marketMood = db.marketMood || {};
+      if(!db.marketMood[data.date]) db.marketMood[data.date] = {mood:data.mktMood, trend:data.idxTrend||'', vol:data.mktVol||'', note:''};
+    }
     saveDB();
     resetTradeForm();
     renderAll();
@@ -4870,6 +5143,7 @@ body.sidebar-open{ overflow:hidden; }
       rMultiple: sliceAuto.rMultiple,
       exitReasonTags: getSelectedChips('trPartialExitReasonChips'),
       screenshot: null,
+      updates: [],
       partialExit: true,
       parentTradeId: t.id
     };
@@ -5856,7 +6130,7 @@ body.sidebar-open{ overflow:hidden; }
     let trades = allTrades.filter(t=>{
       if(tradesViewState.outcome!=='all' && tradeOutcome(t)!==tradesViewState.outcome) return false;
       if(!q) return true;
-      const haystack = [t.ticker, t.lesson, t.context, t.catalyst, ...(t.verdictTags||[]), ...(t.exitReasonTags||[])]
+      const haystack = [t.ticker, t.lesson, t.context, t.catalyst, ...(t.verdictTags||[]), ...(t.exitReasonTags||[]), ...(t.updates||[]).map(u=>u.text)]
         .filter(Boolean).join(' ').toLowerCase();
       return haystack.includes(q);
     });
@@ -5895,6 +6169,10 @@ body.sidebar-open{ overflow:hidden; }
       const outcome = tradeOutcome(t);
       const badgeLabel = outcome==='win' ? 'Win' : (outcome==='loss' ? 'Loss' : 'Open');
       const allTags = [].concat(t.verdictTags||[], t.exitReasonTags||[]);
+      { const mi0 = fvMoodInfo(t.mktMood), al0 = fvAlignment(t);
+        if(mi0) allTags.unshift(mi0.e+' '+mi0.l);
+        if(al0==='with') allTags.unshift('✓ with market'); else if(al0==='against') allTags.unshift('✗ against market');
+        if((t.updates||[]).length) allTags.unshift('📝 '+t.updates.length+' note'+(t.updates.length===1?'':'s')); }
 
       let groupHeader = '';
       if(grouped){
@@ -5936,15 +6214,17 @@ body.sidebar-open{ overflow:hidden; }
               <div class="td-kv"><span class="td-kv-lbl">Entry Time</span><span class="td-kv-val">${t.entryDT?t.entryDT.replace('T',' '):'—'}</span></div>
               <div class="td-kv"><span class="td-kv-lbl">Exit Time</span><span class="td-kv-val">${t.exitDT?t.exitDT.replace('T',' '):'—'}</span></div>
             </div>
-            <div class="trade-detail-row"><span class="lbl">Market context</span>${escapeHtml(t.context||'—')}</div>
+            <div class="trade-detail-row"><span class="lbl">Market context</span>${escapeHtml(t.context||'')}${fvSentChipsHtml(t) ? `<div class="sent-row" style="margin-top:4px;">${fvSentChipsHtml(t)}</div>` : (t.context?'':'—')}</div>
             <div class="trade-detail-row"><span class="lbl">Catalyst</span>${escapeHtml(t.catalyst||'—')}</div>
             <div class="trade-detail-row"><span class="lbl">Why this trade</span>${escapeHtml(t.thesisWhy||'—')}</div>
             <div class="trade-detail-row"><span class="lbl">Invalidation</span>${escapeHtml(t.thesisInvalidate||'—')}</div>
             <div class="trade-detail-row"><span class="lbl">Psychology</span>${escapeHtml((t.psychTags||[]).join(', ')||'—')} · Following system: ${escapeHtml(t.followingSystem||'—')}</div>
             <div class="trade-detail-row"><span class="lbl">Management</span>${escapeHtml(t.mgmtNotes||'—')}</div>
             <div class="trade-detail-row"><span class="lbl">One lesson</span>${escapeHtml(t.lesson||'—')}</div>
+            ${(t.updates||[]).length ? `<div class="trade-detail-row"><span class="lbl">Live notes</span></div>${fvNotesTimelineHtml(t)}` : ''}
             ${t.screenshot?`<img src="${t.screenshot}" style="max-width:100%; border-radius:6px; margin-top:6px; border:1px solid var(--line);">`:''}
             <div class="trade-actions">
+              <button class="btn ghost" data-note-trade="${t.id}">📝 Note</button>
               <button class="btn ghost" data-chart-trade="${escapeHtml(t.ticker||'')}">Chart</button>
               <button class="btn ghost" data-edit-trade="${t.id}">Edit</button>
               ${(!t.exitDT && parseFloat(t.qty)>0)?`<button class="btn ghost" data-partial-exit-trade="${t.id}">Partial Exit</button>`:''}
@@ -5957,11 +6237,12 @@ body.sidebar-open{ overflow:hidden; }
 
     el.querySelectorAll('.trade-card').forEach(card=>{
       card.addEventListener('click', (e)=>{
-        if(e.target.closest('[data-edit-trade]') || e.target.closest('[data-del-trade]') || e.target.closest('[data-chart-trade]')) return;
+        if(e.target.closest('[data-edit-trade]') || e.target.closest('[data-del-trade]') || e.target.closest('[data-chart-trade]') || e.target.closest('[data-note-trade]')) return;
         card.classList.toggle('expanded');
       });
     });
     el.querySelectorAll('[data-edit-trade]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); editTrade(btn.dataset.editTrade); }));
+    el.querySelectorAll('[data-note-trade]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); window.fvQuickNote(btn.dataset.noteTrade); }));
     el.querySelectorAll('[data-partial-exit-trade]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); editTrade(btn.dataset.partialExitTrade, {focusPartialExit:true}); }));
     el.querySelectorAll('[data-del-trade]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); deleteTrade(btn.dataset.delTrade); }));
   }
@@ -8698,6 +8979,28 @@ body.sidebar-open{ overflow:hidden; }
   // states (e.g. both "fomo" and "overconfident") — each tag is judged on its
   // own net P&L across every trade it was on, sorted worst-cost-first so the
   // most expensive habit is the first thing you see.
+  function renderMarketEdge(){
+    const trades = db.trades||[];
+    renderAdherenceCompare('tdMarketAlign', [
+      {label:'✓ With the market', trades: trades.filter(t=>fvAlignment(t)==='with')},
+      {label:'➖ Mixed read', trades: trades.filter(t=>fvAlignment(t)==='mixed')},
+      {label:'✗ Against the market', trades: trades.filter(t=>fvAlignment(t)==='against')},
+    ], 'Add a market mood / index trend when logging trades to compare with-the-market vs against-the-market results.');
+    const el = document.getElementById('tdMarketMood'); if(!el) return;
+    const rows = FV_MOODS.map(m=>{
+      const list = trades.filter(t=> String(t.mktMood)===m.v && t.mktMood!=='');
+      const wp = list.filter(t=> t.pnl!==undefined && t.pnl!=='' && !isNaN(parseFloat(t.pnl)));
+      const net = wp.reduce((s,t)=>s+parseFloat(t.pnl),0), wins = wp.filter(t=>parseFloat(t.pnl)>=0).length;
+      return {name:m.e+' '+m.l, count:list.length, net, winRate: wp.length ? Math.round(wins/wp.length*100) : null, has: wp.length>0};
+    }).filter(r=>r.has);
+    if(!rows.length){ el.innerHTML = ''; return; }
+    const maxAbs = Math.max(1, ...rows.map(r=>Math.abs(r.net)));
+    el.innerHTML = rows.map(r=>{
+      const pct = Math.min(100, (Math.abs(r.net)/maxAbs)*100), cls = r.net>=0?'pos':'neg';
+      return `<div class="td-bd-row"><div class="td-bd-top"><span class="td-bd-name">${escapeHtml(r.name)}</span><span class="td-bd-meta">${r.count} trade${r.count===1?'':'s'}${r.winRate!==null?(' · '+r.winRate+'% win'):''}</span><span class="td-bd-pnl ${cls}">${fmtPnl(Math.round(r.net))}</span></div><div class="td-bd-bar-track"><div class="td-bd-bar-fill ${cls}" style="width:${pct}%;"></div></div></div>`;
+    }).join('');
+  }
+
   function renderPsychBreakdown(){
     const el = document.getElementById('tdPsychBreakdown');
     if(!el) return;
@@ -8735,6 +9038,7 @@ body.sidebar-open{ overflow:hidden; }
     renderPlanAdherence();
     renderSystemAdherence();
     renderPsychBreakdown();
+    try{ renderMarketEdge(); }catch(e){ console.warn(e); }
   }
 
   // ---- Risk panel ----
@@ -11330,6 +11634,7 @@ body.sidebar-open{ overflow:hidden; }
         const it = e.target.closest('[data-qa]'); if(!it) return;
         const a = it.dataset.qa; closeQA();
         if(a==='trade') openNewTrade();
+        else if(a==='tnote') window.fvQuickNote(null);
         else if(a==='note') openNewNote();
         else if(a==='search') openCmdk();
         else if(a==='import') openImport();
@@ -11542,12 +11847,13 @@ body.sidebar-open{ overflow:hidden; }
         return `<button class="fv-trade-row" type="button" data-trade="${esc(t.id)}">
           <span class="fv-tk ${oc}">${esc((t.ticker||'?').slice(0,4))}</span>
           <span class="fv-tr-main"><b>${esc(t.ticker||'Trade')} <span style="font-weight:600;color:var(--ink-faint);font-size:11px;text-transform:uppercase">${esc(t.direction||'long')}</span></b><span>${esc([fmtDay(t.date||''), t.setupType, t.timeframe].filter(Boolean).join(' · '))}</span></span>
-          <span class="fv-tr-pnl ${oc==='open'?'':signCls(p)}">${oc==='open' ? 'Open' : esc(fmtPnl(p))}${!isNaN(r) && oc!=='open' ? '<small>'+r.toFixed(2)+'R</small>' : ''}</span>
+          <span class="fv-tr-pnl ${oc==='open'?'':signCls(p)}">${oc==='open' ? 'Open<span class="fv-note-btn" role="button" tabindex="0" data-qnote="'+esc(t.id)+'" title="Add a live note">✎ Note</span>' : esc(fmtPnl(p))}${!isNaN(r) && oc!=='open' ? '<small>'+r.toFixed(2)+'R</small>' : ''}</span>
         </button>`;
       }).join('');
     }
     const recentHost = $('fvRecentTrades');
     if(recentHost) recentHost.addEventListener('click', e=>{
+      const qn = e.target.closest('[data-qnote]'); if(qn){ e.stopPropagation(); window.fvQuickNote(qn.dataset.qnote); return; }
       const row = e.target.closest('[data-trade]'); if(!row) return;
       const id = row.dataset.trade;
       openTradeSection('history');
@@ -11626,10 +11932,19 @@ body.sidebar-open{ overflow:hidden; }
       const wd = {}; sc.forEach(t=>{ const d = new Date((tradeBasisDate(t)||'')+'T00:00:00'); if(!isNaN(d)){ const k = d.toLocaleDateString('en-IN',{weekday:'long'}); wd[k] = (wd[k]||0) + parseFloat(t.pnl); } });
       const wk = Object.keys(wd).sort((a,b)=> wd[b]-wd[a]);
       if(wk.length>1) out.push({cls:'', ic:'📅', t:'Strongest day: '+wk[0], d:`${fmtPnl(wd[wk[0]])} net on ${wk[0]}s — your weakest is ${wk[wk.length-1]} (${fmtPnl(wd[wk[wk.length-1]])}).`});
+      // market alignment
+      try{
+        const wi = sc.filter(t=>window.fvTradeAlignment(t)==='with').map(t=>parseFloat(t.pnl)), ag = sc.filter(t=>window.fvTradeAlignment(t)==='against').map(t=>parseFloat(t.pnl));
+        if(wi.length>=2 && ag.length>=2){
+          const a = avg(wi), b = avg(ag);
+          out.push(a>b ? {cls:'good', ic:'🧭', t:'Trade with the market', d:`With-the-market trades average ${fmtPnl(a)} vs ${fmtPnl(b)} when you go against it.`}
+                       : {cls:'warn', ic:'🧭', t:'Contrarian edge?', d:`Against-the-market trades averaged ${fmtPnl(b)} vs ${fmtPnl(a)} with it — your read of sentiment may need work.`});
+        }
+      }catch(e){}
       // streaks
       let run = 0, type = null; for(let i=sc.length-1;i>=0;i--){ const w = parseFloat(sc[i].pnl)>=0; if(type===null) type = w; if(w===type) run++; else break; }
       if(run>=3) out.push(type ? {cls:'good', ic:'🔥', t:run+' wins in a row', d:'Stay process-focused — don\'t let confidence inflate your size.'} : {cls:'warn', ic:'⏸️', t:run+' losses in a row', d:'Consider trading smaller or taking a day off to reset.'});
-      return out.slice(0,4);
+      return out.slice(0,5);
     }
     function renderInsights(){
       const host = $('fvInsights'); if(!host) return;
@@ -11647,9 +11962,53 @@ body.sidebar-open{ overflow:hidden; }
       }
     }
 
+    // ---------- Market pulse (daily sentiment check-in) ----------
+    function pulseGet(k){ return (db.marketMood||{})[k] || {}; }
+    function pulseSet(k, patch){
+      db.marketMood = db.marketMood || {};
+      const cur = db.marketMood[k] || {mood:'', trend:'', vol:'', note:''};
+      db.marketMood[k] = Object.assign({}, cur, patch);
+      saveDB(); renderPulse();
+    }
+    function renderPulse(){
+      const host = $('fvPulseMoods'); if(!host) return;
+      const k = todayISO(), cur = pulseGet(k);
+      host.innerHTML = window.FV_MOODS.map(m=>`<button type="button" class="fv-mood-btn ${String(cur.mood)===m.v && cur.mood!==''?'on':''}" data-mood="${m.v}"><span class="e">${m.e}</span><small>${m.l}</small></button>`).join('');
+      [['fvPulseTrend','trend'],['fvPulseVol','vol']].forEach(([id,key])=>{ const g = $(id); if(g) g.querySelectorAll('button').forEach(b=> b.classList.toggle('on', cur[key]===b.dataset.v)); });
+      const ti = $('fvPulseText'); if(ti && document.activeElement!==ti) ti.value = cur.note || '';
+      const mi = window.fvMoodInfo(cur.mood);
+      const sub = $('fvPulseSub'); if(sub) sub.textContent = mi ? 'Today: '+mi.e+' '+mi.l+' — new trades pre-fill this' : 'How is the market feeling today? One tap — new trades pre-fill it.';
+      // last 14 trading days: mood tile + P&L underline
+      const pd = pnlByDay(), strip = $('fvPulseStrip'), days = [];
+      const d = new Date(); d.setHours(0,0,0,0);
+      for(let i=0;i<30 && days.length<14;i++){ const dw = d.getDay(), kk = iso(d); if((dw!==0 && dw!==6) || (db.marketMood||{})[kk] || pd[kk]!==undefined) days.push(kk); d.setDate(d.getDate()-1); }
+      days.reverse();
+      if(strip) strip.innerHTML = days.map(kk=>{
+        const m = pulseGet(kk), mm = window.fvMoodInfo(m.mood), v = pd[kk];
+        const tip = fmtDay(kk)+(mm?' · '+mm.l:'')+(m.note?' · '+m.note:'')+(v!==undefined?' · '+fmtPnl(v):'');
+        return `<div class="fv-pulse-day" title="${esc(tip)}"><i>${mm?mm.e:''}</i><b class="${v===undefined?'':v>=0?'pos':'neg'}"></b>${esc(new Date(kk+'T00:00:00').toLocaleDateString('en-IN',{weekday:'narrow'}))}</div>`;
+      }).join('');
+      // does the mood actually line up with your results?
+      const edge = $('fvPulseEdge');
+      if(edge){
+        const bull = [], bear = [];
+        Object.keys(pd).forEach(kk=>{ const m = pulseGet(kk); if(m.mood===''||m.mood===undefined) return; const n = parseInt(m.mood,10); if(n>0) bull.push(pd[kk]); else if(n<0) bear.push(pd[kk]); });
+        const av = a=> a.reduce((s,x)=>s+x,0)/a.length;
+        edge.textContent = (bull.length>=2 && bear.length>=2)
+          ? `On bullish days you average ${fmtPnl(av(bull))} (${bull.length} days) vs ${fmtPnl(av(bear))} on bearish days (${bear.length}).`
+          : 'Log the market mood for a few days and this will show how your P&L changes with the market.';
+      }
+    }
+    const pulseMoods = $('fvPulseMoods');
+    if(pulseMoods) pulseMoods.addEventListener('click', e=>{ const b = e.target.closest('[data-mood]'); if(!b) return; const k = todayISO(), same = String(pulseGet(k).mood)===b.dataset.mood; pulseSet(k, {mood: same ? '' : b.dataset.mood}); });
+    [['fvPulseTrend','trend'],['fvPulseVol','vol']].forEach(([id,key])=>{ const g = $(id); if(g) g.addEventListener('click', e=>{ const b = e.target.closest('button[data-v]'); if(!b) return; const k = todayISO(); pulseSet(k, {[key]: pulseGet(k)[key]===b.dataset.v ? '' : b.dataset.v}); }); });
+    const pulseText = $('fvPulseText');
+    if(pulseText){ let pt; pulseText.addEventListener('input', ()=>{ clearTimeout(pt); pt = setTimeout(()=>{ const k = todayISO(); db.marketMood = db.marketMood||{}; db.marketMood[k] = Object.assign({mood:'',trend:'',vol:''}, db.marketMood[k]||{}, {note: pulseText.value.trim()}); saveDB(); }, 500); }); }
+    const pulseNoteBtn = $('fvPulseNote'); if(pulseNoteBtn) pulseNoteBtn.addEventListener('click', ()=> window.fvQuickNote(null));
+
     function renderFvHome(){
       if(!$('fvHomeKpis')) return;
-      renderHeroRight(); renderKpis(); renderEquity(); renderChecklist(); renderRecent(); renderHeat(); renderInsights();
+      renderHeroRight(); renderKpis(); renderEquity(); renderChecklist(); renderRecent(); renderHeat(); renderPulse(); renderInsights();
       updateSidebarCard(); updateAvatar();
       // milestone celebration (once per milestone, only while looking at Home)
       try{
