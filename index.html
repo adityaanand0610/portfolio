@@ -6545,6 +6545,18 @@ body.sidebar-open{ overflow:hidden; }
   function bkForceRefresh(){ bkCooldownUntil = 0; bkRateStrikes = 0; try{ localStorage.removeItem('fv_bk_cooldown'); }catch(e){} bkLastAttempt = 0; return bkRefreshQuotes(); }
   document.addEventListener('click', function(e){ var b = e.target.closest && e.target.closest('.bk-live-badge'); if(b && bkReady()) bkForceRefresh(); });
   var bkStatusCache = null, bkLoginNeeded = false;
+  var bkBust = false, bkEmptyStreak = 0;           // after an empty/failed price fetch: bypass any cached copy on the next one
+  function bkQuoteDate(q){                          // trading date (IST) a quote belongs to, if the proxy tells us
+    try{ var t = q && q.ts; if(t===undefined || t===null || t==='') return ''; var ms = typeof t==='number' ? (t<1e12 ? t*1000 : t) : Date.parse(t); return isNaN(ms) ? '' : bkIstDate(ms/1000); }catch(e){ return ''; }
+  }
+  function bkLastMarkDate(){
+    var d = ''; (db.trades||[]).forEach(function(t){ if(!t.exitDT && t.markDate && t.markDate>d) d = t.markDate; }); return d;
+  }
+  function bkShortDate(k){ try{ return new Date(k+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric', month:'short'}); }catch(e){ return ''; } }
+  function bkAsOfSfx(r){
+    var d = ''; (db.trades||[]).forEach(function(t){ if(!t.exitDT && t.ticker===r.ticker && t.markDate && t.markDate>d) d = t.markDate; });
+    return d ? ' · '+bkShortDate(d) : '';
+  }
 
   function bkCfg(){
     if(bkCfgObj) return bkCfgObj;
@@ -6582,7 +6594,8 @@ body.sidebar-open{ overflow:hidden; }
     Object.keys(params||{}).forEach(function(k){ var v = params[k]; if(v!==undefined && v!==null && v!=='') qs.set(k, v); });
     var ctrl = new AbortController(), timer = setTimeout(function(){ ctrl.abort(); }, timeoutMs||25000);
     try{
-      var res = await fetch(c.url.trim().replace(/\/+$/,'')+path+(qs.toString()?'?'+qs:''), {headers:{'X-App-Key': c.appKey}, signal: ctrl.signal});
+      if(path==='/quotes' && bkBust) qs.set('_', String(Date.now()));
+      var res = await fetch(c.url.trim().replace(/\/+$/,'')+path+(qs.toString()?'?'+qs:''), {headers:{'X-App-Key': c.appKey}, signal: ctrl.signal, cache: (path==='/quotes' || path==='/status') ? 'no-store' : 'default'});
       var body = null; try{ body = await res.json(); }catch(e){}
       if(!res.ok){ var e1 = new Error(String((body && body.error) || ('Proxy error '+res.status)).replace(/groww|zerodha|kite( connect)?/ig, 'data provider')); e1.status = res.status; e1.code = (body && body.code) || ('http_'+res.status); throw e1; }
       return body;
@@ -6653,7 +6666,7 @@ body.sidebar-open{ overflow:hidden; }
       var key = bkSymbolKey(t.ticker), q = key ? liveQuotes[key] : null; if(!q) return;
       var qty = parseFloat(t.qty), ep = parseFloat(t.entryPrice); if(!(qty>0) || isNaN(ep)) return;
       var sgn = t.direction==='short' ? -1 : 1;
-      t.markPrice = q.ltp; t.markDate = todayKey(); t.unrealizedPnl = bkRound2((q.ltp-ep)*qty*sgn); t.liveMark = true;
+      t.markPrice = q.ltp; t.markDate = bkQuoteDate(q) || todayKey(); t.unrealizedPnl = bkRound2((q.ltp-ep)*qty*sgn); t.liveMark = true;
     });
     try{ recordUnrealSnapshot(); }catch(e){}
     if(Date.now()-bkLastPersist > 120000){ bkLastPersist = Date.now(); try{ localStorage.setItem(DB_KEY, JSON.stringify(db)); }catch(e){} }
@@ -6669,8 +6682,8 @@ body.sidebar-open{ overflow:hidden; }
     var hhmm = s.asOf ? new Date(s.asOf).toLocaleTimeString('en-IN',{hour:'2-digit', minute:'2-digit', second:'2-digit'}) : '';
     if(!bkReady()){ txt = 'Live prices: connect a broker in Settings'; }
     else if(s.status==='loading'){ txt = 'Fetching prices…'; cls = 'stale'; }
-    else if(s.status==='err'){ txt = 'Price feed: '+(s.msg||'error')+(hhmm?' · last update '+hhmm:'')+' · tap to retry'; cls = 'err'; }
-    else if(s.status==='ok'){ if(bkMarketOpen()){ txt = 'LIVE · '+srcName+' · '+hhmm; cls = 'live'; } else { txt = 'Market closed · last price · '+srcName+' · '+hhmm; cls = 'stale'; } }
+    else if(s.status==='err'){ var lm = bkLastMarkDate(); txt = 'Price feed: '+(s.msg||'error')+(lm?' · showing '+bkShortDate(lm)+' prices':'')+' · tap to retry'; cls = 'err'; }
+    else if(s.status==='ok'){ var tail = [srcName, hhmm].filter(Boolean).join(' · '); if(bkMarketOpen()){ txt = 'LIVE · '+tail; cls = 'live'; } else { txt = 'Market closed · prices as of last close · '+tail; cls = 'stale'; } }
     else if(s.status==='idle'){ txt = s.msg || 'No open positions to price'; }
     else { txt = 'Live prices off'; }
     ['plLiveBadge','tcLiveBadge','pfLiveBadge'].forEach(function(id){
@@ -6697,7 +6710,16 @@ body.sidebar-open{ overflow:hidden; }
         var got = {}, missing = [], src = new Set(), asOf = Date.now();
         out.forEach(function(r){ Object.assign(got, r.quotes||{}); missing = missing.concat(r.missing||[]); if(r.source) String(r.source).split('+').forEach(function(x){ src.add(x); }); });
         Object.keys(got).forEach(function(k){ var q = got[k], old = liveQuotes[k]; q.prevLtp = old ? old.ltp : null; liveQuotes[k] = q; });
-        liveMissing = missing; bkLoginNeeded = false; bkRateStrikes = 0;
+        liveMissing = missing; bkRateStrikes = 0;
+        if(!Object.keys(got).length){
+          // The proxy answered but sent no prices at all — typically the daily data-provider token is expired / not approved yet.
+          var note = ''; out.forEach(function(r){ note = note || r.error || r.message || r.warning || r.note || ''; });
+          bkBust = true; bkEmptyStreak++; bkLoginNeeded = true;
+          bkSetLive('err', note ? String(note).replace(/groww|zerodha|kite( connect)?/ig, 'data provider') : 'No prices received — today\'s data-provider token may not be approved yet. Approve it, then come back: this retries automatically');
+          bkLiveDependents();
+          return false;
+        }
+        bkLoginNeeded = false; bkBust = false; bkEmptyStreak = 0;
         bkApplyLiveMarks();
         try{ cmpRecordToday(); cmpFetchIndexLive().then(function(){ cmpRecordToday(); }).catch(function(){}); }catch(e){}
         bkSetLive('ok', '', Array.from(src).join('+'), asOf);
@@ -6705,6 +6727,10 @@ body.sidebar-open{ overflow:hidden; }
         return true;
       }catch(e){
         if(e.code==='kite_login') bkLoginNeeded = true;
+        bkBust = true;
+        if(!bkIsRateLimit(e) && (e.status===401 || e.status===403 || /token|expire|approve|login|unauthori[sz]ed/i.test(String(e.message||'')))){
+          bkLoginNeeded = true; bkSetLive('err', 'Data-provider token expired or not approved — approve it, then come back; this retries automatically'); bkLiveDependents(); return false;
+        }
         if(bkIsRateLimit(e)){ var cd = bkStartCooldown(); bkSetLive('err', 'Rate limit hit — pausing price refresh for '+Math.round(cd/1000)+'s (showing last prices)'); bkLiveDependents(); return false; }
         bkSetLive('err', e.message);
         bkLiveDependents();
@@ -6716,7 +6742,7 @@ body.sidebar-open{ overflow:hidden; }
   function bkMaybeRefresh(){
     if(!bkReady() || !bkCfg().livePrices) { bkPaintBadges(); return; }
     if(Date.now() < bkCooldownUntil){ bkPaintBadges(); return; }
-    if(liveState.status==='err' && Date.now()-bkLastAttempt < 30000) return;
+    if(liveState.status==='err' && Date.now()-bkLastAttempt < 6000) return;
     var age = Date.now()-(liveState.asOf||0), limit = bkMarketOpen() ? 5000 : 300000;
     if(liveState.status!=='ok' || age>limit) bkRefreshQuotes();
   }
@@ -6729,11 +6755,16 @@ body.sidebar-open{ overflow:hidden; }
   function bkStartLoop(){
     if(liveTimer) return;
     liveTimer = setInterval(function(){
-      if(document.hidden || !bkReady() || !bkCfg().livePrices || !bkTradesVisible() || !bkMarketOpen()) return;
+      if(document.hidden || !bkReady() || !bkCfg().livePrices || !bkTradesVisible()) return;
       if(Date.now() < bkCooldownUntil) return;
-      if(Date.now()-bkLastAttempt >= 5000) bkRefreshQuotes();
+      var inErr = liveState.status==='err';
+      if(!bkMarketOpen() && !inErr) return;                       // after hours: only keep trying while the feed is failing (e.g. token not approved yet)
+      if(Date.now()-bkLastAttempt >= (inErr ? 15000 : 5000)) bkRefreshQuotes();
     }, 1000);
     document.addEventListener('visibilitychange', function(){ if(!document.hidden && bkTradesVisible()) bkMaybeRefresh(); });
+    window.addEventListener('focus', function(){ if(bkTradesVisible()) bkMaybeRefresh(); });   // back from approving the token in the broker app
+    window.addEventListener('pageshow', function(){ if(bkTradesVisible()) bkMaybeRefresh(); });
+    window.addEventListener('online', function(){ if(bkTradesVisible()) bkForceRefresh(); });
   }
 
   // =====================================================================
@@ -10776,7 +10807,7 @@ body.sidebar-open{ overflow:hidden; }
           '<div class="pf-sub pf-faint">Invested '+fmtMoney(r.cost)+' → '+fmtMoney(cur)+'</div></div>' +
         '<div class="pf-r"><div class="pf-ret '+sg(r.unreal)+'">'+(r.unreal!==null ? plMoney(r.unreal) : '—')+(r.unrealPct!==null ? ' <span class="pf-pct">('+bkPct(r.unrealPct)+')</span>' : '')+'</div>' +
           '<div class="pf-sub">LTP '+(hasPx?bkPx(r.ltp):'—')+(r.dayPct!==null && r.dayPct!==undefined ? ' <span class="'+sg(r.dayPct)+'">('+bkPct(r.dayPct)+')</span>' : '')+'</div>' +
-          '<div class="pf-sub pf-faint">'+(r.live?'live':(hasPx?'last known':'no price'))+'</div></div>' +
+          '<div class="pf-sub pf-faint">'+(r.live?'live':(hasPx?'last known'+bkAsOfSfx(r):'no price'))+'</div></div>' +
         '</div>';
     }).join('');
   }
@@ -10815,7 +10846,7 @@ body.sidebar-open{ overflow:hidden; }
     var body = rows.map(function(r){
       var open = r.qty!==0;
       return '<tr class="clickable" data-chart-ticker="'+escapeHtml(r.ticker)+'">' +
-        '<td><span class="sym">'+escapeHtml(r.ticker)+'</span><span class="sub">'+(open ? (r.dir==='short'?'Short':'Long')+' · '+(r.live?'live':(r.ltp!==null?'last known':'no price')) : r.realisedCount+' closed')+'</span></td>' +
+        '<td><span class="sym">'+escapeHtml(r.ticker)+'</span><span class="sub">'+(open ? (r.dir==='short'?'Short':'Long')+' · '+(r.live?'live':(r.ltp!==null?'last known'+bkAsOfSfx(r):'no price')) : r.realisedCount+' closed')+'</span></td>' +
         '<td>'+(open ? Math.abs(r.qty) : '—')+'</td><td>'+(open ? bkPx(r.avg) : '—')+'</td>' +
         '<td data-ltp="'+escapeHtml(r.key||'')+'">'+(open ? bkPx(r.ltp) : '—')+'</td>' +
         '<td class="'+bkSignCls(r.dayPct)+'">'+(open && r.dayPct!==null ? bkPct(r.dayPct) : '—')+'</td>' +
@@ -11362,8 +11393,10 @@ body.sidebar-open{ overflow:hidden; }
     var el = bkEl('bkStatusList'); if(!el) return;
     if(err){ el.innerHTML = '<div class="bk-status-item"><span class="nm">Live data</span><span class="st bad">'+escapeHtml(err)+'</span></div>'; return; }
     if(!s){ el.innerHTML = ''; return; }
-    var ok = !!(s.groww && s.groww.configured);
-    el.innerHTML = '<div class="bk-status-item"><span class="nm">Live data</span><span class="st '+(ok?'ok':'warn')+'">'+(ok?'ready':'not configured')+'</span></div>';
+    var ok = !!(s.groww && s.groww.configured), g = s.groww || {};
+    var why = ['message','error','tokenStatus','status','token'].map(function(k){ return typeof g[k]==='string' ? g[k] : ''; }).filter(Boolean)[0] || '';
+    el.innerHTML = '<div class="bk-status-item"><span class="nm">Live data</span><span class="st '+(ok?'ok':'warn')+'">'+(ok?'ready':'not configured')+'</span></div>' +
+      (why ? '<div class="bk-status-item"><span class="nm">Provider</span><span class="st warn">'+escapeHtml(String(why).replace(/groww|zerodha|kite( connect)?/ig,'data provider').slice(0,90))+'</span></div>' : '');
     bkLoginNeeded = false;
   }
   async function bkTestConnection(){
