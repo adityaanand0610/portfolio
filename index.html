@@ -1400,6 +1400,8 @@
     border:1px solid transparent; border-radius:999px; padding:4px 11px; cursor:pointer; margin-left:8px;
   }
   .tcal-today-btn:hover{ border-color:var(--accent); }
+  .tcal-cell.wk-off{ background:var(--surface-raised); opacity:.55; border-style:dotted; cursor:pointer; }
+  .tcal-cell.wk-off:hover{ opacity:.9; }
   .tcal-cell.is-holiday{ background:repeating-linear-gradient(135deg, var(--surface-raised) 0 6px, transparent 6px 12px); border-style:dashed; cursor:pointer; }
   .tcal-cell.is-special{ background:var(--accent-bg); border-color:var(--accent); cursor:pointer; }
   .tcal-cell.is-special.win, .tcal-cell.is-special.loss{ border-style:dashed; }
@@ -2429,6 +2431,66 @@ header.topbar{
 .fv-pulse-edge{ font-size:12px; color:var(--ink-dim); margin-top:12px; line-height:1.5; }
 @media (max-width:520px){ .mood-row .picker-btn{ min-width:56px; } }
 
+
+/* ---------- Trading tabs v2: Overview · Portfolio · P&L ---------- */
+/* one shared live-price bar (was a separate badge + refresh on every tab) */
+.tl-livebar{ display:none; margin:0 0 14px; padding:8px 10px; border:1px solid var(--line); background:var(--surface); border-radius:14px; box-shadow:var(--shadow-sm); }
+.tl-livebar .bk-live-badge{ flex:1 1 220px; min-width:0; }
+#view-trades[data-panel="overview"] .tl-livebar, #view-trades[data-panel="portfolio"] .tl-livebar, #view-trades[data-panel="pnl"] .tl-livebar{ display:flex; }
+
+/* Overview: summary dashboard */
+#tpanel-overview > #tdEquityCard, #tpanel-overview > #tdLessonsCarouselCard{ grid-column:1 / -1; }
+@media (min-width:1100px){
+  #tpanel-overview > #tdGrpReturn, #tpanel-overview > #tdGrpDist{ grid-column:span 6; }
+}
+#tpanel-overview .td-hero-stats-row{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+@media (min-width:700px){ #tpanel-overview .td-hero-stats-row{ grid-template-columns:repeat(5,minmax(0,1fr)); } }
+@media (min-width:640px){ #tdOverviewStats{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+@media (min-width:768px){ html:root body #view-trades .trade-subnav-row{ min-height:0; margin-bottom:8px; } }
+
+
+/* Portfolio: summary strip + positions | allocation & index comparison */
+#tpanel-portfolio.active{ display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:16px; align-items:start; }
+#tpanel-portfolio > *{ grid-column:1 / -1; min-width:0; }
+#tpanel-portfolio .pf-summary{ margin-bottom:0; }
+#tpanel-portfolio .pf-summary:empty{ display:none; }
+#pfSide{ display:flex; flex-direction:column; gap:16px; }
+#pfSide .td-card{ margin:0; height:auto; }
+#pfSide .td-bd-list{ grid-template-columns:1fr !important; }
+#pvCard{ margin:0; height:auto; }
+#pvCard:not(.has){ display:none; }
+.pv-legend{ display:flex; flex-wrap:wrap; gap:6px 16px; font-size:11.5px; color:var(--ink-dim); margin-bottom:6px; }
+.pv-sw{ display:inline-block; width:14px; height:3px; border-radius:2px; margin-right:6px; vertical-align:middle; }
+.pv-sw-val{ background:var(--accent); } .pv-sw-inv{ background:var(--ink-dim); opacity:.7; height:0; border-top:2px dashed var(--ink-dim); background:none; }
+.pv-sw-bar{ height:8px; width:8px; background:var(--teal); }
+.pv-wrap{ position:relative; width:100%; }
+.pv-wrap svg{ display:block; width:100%; height:auto; touch-action:pan-y; }
+.pv-tip{ position:absolute; pointer-events:none; background:#1b1b1f; color:#f2f2f2; border-radius:8px; padding:7px 10px; font-size:11.5px; line-height:1.5; white-space:nowrap; z-index:5; box-shadow:0 4px 14px rgba(0,0,0,.25); display:none; }
+.pv-tip b{ font-weight:600; } .pv-tip .p{ color:#7FD9A0; } .pv-tip .n{ color:#F0A088; }
+@media (min-width:760px){
+  #tpanel-portfolio .pf-summary{ display:flex; align-items:center; gap:32px; padding:20px 24px; }
+  #tpanel-portfolio .pf-cur{ flex:0 0 auto; }
+  #tpanel-portfolio .pf-grid{ flex:1; margin:0; padding:0 0 0 32px; border-top:none; border-left:1px dashed var(--line); }
+}
+@media (min-width:900px){
+  #pfMain{ grid-column:span 7 !important; }
+  #pfSide{ grid-column:span 5 !important; position:sticky; top:84px; }
+}
+@media (max-width:759.98px){ .pf-cur-val{ font-size:26px; } .pf-grid{ gap:8px; } .pf-v{ font-size:13px; } }
+
+/* P&L: sticky period filter + side-by-side chart groups */
+.pl-toolbar{ display:flex; align-items:center; gap:10px; margin:0 0 2px; overflow-x:auto; scrollbar-width:none; }
+.pl-toolbar::-webkit-scrollbar{ display:none; }
+.pl-toolbar-lbl{ font-size:10.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-faint); flex-shrink:0; }
+#tpanel-pnl.active{ display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:16px; align-items:start; }
+#tpanel-pnl > *{ grid-column:1 / -1; min-width:0; }
+#tpanel-pnl .pl-comp-grid{ margin-bottom:0; }
+#tpanel-pnl #plBanner:empty{ display:none; }
+@media (min-width:1280px){
+  #tpanel-pnl > #plGrpTime, #tpanel-pnl > #plGrpStock{ grid-column:span 6; }
+}
+#tdUnrealCard{ height:auto !important; }
+
 /* ---------- 4a · Trading group in the sidebar (Home + Trade Log shortcuts in one nav) ---------- */
 html:root body nav.tabs .tab-btn.tab-compat{ display:none !important; }
 .tab-btn.tab-sub{ font-size:13px; padding:9px 12px; font-weight:600; }
@@ -3013,7 +3075,7 @@ body.sidebar-open{ overflow:hidden; }
 @media (min-width:768px){ #homeDate{ display:none; } .home-hero{ padding:22px 28px; } }
 
 /* ---------- calendar: columns must be allowed to shrink (1fr = min-content blew the grid past the card on phones) ---------- */
-.tcal-weekday-row, .tcal-week-row{ grid-template-columns:var(--tcal-cols, repeat(5,minmax(0,1fr)) minmax(44px,.9fr)); }
+.tcal-weekday-row, .tcal-week-row{ grid-template-columns:var(--tcal-cols, repeat(7,minmax(0,1fr)) minmax(44px,.9fr)); }
 .tcal-cell{ min-width:0; overflow:hidden; }
 .tcal-pnl-tag, .tcal-trade-count{ max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:clip; }
 .tcal-card, .tcal-table{ min-width:0; max-width:100%; }
@@ -3326,41 +3388,15 @@ body.sidebar-open{ overflow:hidden; }
       <button class="amount-visibility-toggle" id="tradeAmountToggleBtn" title="Showing ₹ amounts — tap to hide" aria-label="Toggle amount visibility"></button>
     </div>
 
+<div class="bk-live-row tl-livebar" id="tradeLiveBar">
+  <span class="bk-live-badge" id="plLiveBadge"><span class="bk-dot"></span><span class="bk-live-text">Live prices: not set up</span></span>
+  <button class="td-list-sort" id="plRefreshBtn" type="button">↻ Refresh prices</button>
+</div>
 <div class="trade-panel active" id="tpanel-overview">
       <div id="tdDailyLimitBanner"></div>
       <div class="td-hero-card" id="tdHeroCard"></div>
       <div class="td-stat-grid" id="tdOverviewStats"></div>
-      <div class="td-card" id="tdOpenAllocCard" style="display:none;">
-        <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
-          <span>Open Position Allocation</span>
-        </div>
-        <div class="td-card-sub" id="tdOpenAllocSub" style="margin-bottom:8px; display:block;"></div>
-        <div id="tdOpenAllocList"></div>
-      </div>
-      <div class="td-card" id="cmpOvCard">
-        <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
-          <span>Portfolio vs Indices</span>
-          <div class="eq-range-toggle" id="cmpOvScope">
-            <button class="eq-range-btn on" data-scope="week">Week</button>
-            <button class="eq-range-btn" data-scope="month">Month</button>
-            <button class="eq-range-btn" data-scope="all">All time</button>
-          </div>
-        </div>
-        <div class="td-card-sub" id="cmpOvSub" style="margin-bottom:10px; display:block;"></div>
-        <div id="cmpOvBody"></div>
-      </div>
-      <div class="td-card" id="tdUnrealCard">
-        <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
-          <span>Unrealised P&amp;L History</span>
-          <div class="eq-range-toggle" id="tdUnrealToggle">
-            <button class="eq-range-btn on" data-ukind="week">Weekly</button>
-            <button class="eq-range-btn" data-ukind="month">Monthly</button>
-          </div>
-        </div>
-        <div class="td-card-sub" id="tdUnrealSub" style="margin-bottom:8px; display:block;"></div>
-        <div id="tdUnrealList"></div>
-      </div>
-      <div class="td-card">
+      <div class="td-card" id="tdEquityCard">
         <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
           <span>Equity Curve</span>
           <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -3397,7 +3433,7 @@ body.sidebar-open{ overflow:hidden; }
         </div>
         <div id="lessonsCarouselDots" style="display:flex; gap:6px; justify-content:center; margin-top:12px;"></div>
       </div>
-<div class="tr-group"><div class="tr-seg"><button class="tr-seg-btn on" data-g="g1" data-p="0">Return vs deposits</button><button class="tr-seg-btn" data-g="g1" data-p="1">XIRR</button><button class="tr-seg-btn" data-g="g1" data-p="2">Top 5 trades</button></div><div class="tr-pane on" data-g="g1" data-p="0">
+<div class="tr-group" id="tdGrpReturn"><div class="tr-seg"><button class="tr-seg-btn on" data-g="g1" data-p="0">Return vs deposits</button><button class="tr-seg-btn" data-g="g1" data-p="1">XIRR</button><button class="tr-seg-btn" data-g="g1" data-p="2">Top 5 trades</button></div><div class="tr-pane on" data-g="g1" data-p="0">
       <div class="td-card">
         <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
           <span>Return on Capital vs Deposits</span>
@@ -3447,7 +3483,7 @@ body.sidebar-open{ overflow:hidden; }
         <div id="tdTopRocList"></div>
       </div>
 </div></div>
-<div class="tr-group"><div class="tr-seg"><button class="tr-seg-btn on" data-g="g2" data-p="0">Weekday</button><button class="tr-seg-btn" data-g="g2" data-p="1">Month</button><button class="tr-seg-btn" data-g="g2" data-p="2">Outcomes</button><button class="tr-seg-btn" data-g="g2" data-p="3">Mix</button></div><div class="tr-pane on" data-g="g2" data-p="0">
+<div class="tr-group" id="tdGrpDist"><div class="tr-seg"><button class="tr-seg-btn on" data-g="g2" data-p="0">Weekday</button><button class="tr-seg-btn" data-g="g2" data-p="1">Month</button><button class="tr-seg-btn" data-g="g2" data-p="2">Outcomes</button><button class="tr-seg-btn" data-g="g2" data-p="3">Mix</button></div><div class="tr-pane on" data-g="g2" data-p="0">
       <div class="td-card">
         <div id="tdWeekdayChart"></div>
       </div>
@@ -3467,38 +3503,68 @@ body.sidebar-open{ overflow:hidden; }
 </div>
 
 <div class="trade-panel" id="tpanel-portfolio">
-      <div class="bk-live-row">
-        <span class="bk-live-badge" id="pfLiveBadge"><span class="bk-dot"></span><span class="bk-live-text">Live prices: not set up</span></span>
-      </div>
       <div class="pf-summary" id="pfSummary"></div>
-      <div class="pf-listhead">
-        <div class="pf-title">Positions <span id="pfCount"></span></div>
-        <div class="eq-range-toggle" id="pfSort">
-          <button class="eq-range-btn on" data-pfs="value">Value</button>
-          <button class="eq-range-btn" data-pfs="returns">Returns</button>
-          <button class="eq-range-btn" data-pfs="day">1D</button>
+      <div class="td-card pv-card" id="pvCard">
+        <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
+          <span>Portfolio value vs Invested</span>
+          <div class="eq-range-toggle" id="pvRange">
+            <button class="eq-range-btn" data-pvr="30">1M</button>
+            <button class="eq-range-btn" data-pvr="90">3M</button>
+            <button class="eq-range-btn on" data-pvr="0">All</button>
+          </div>
         </div>
+        <div class="td-card-sub" id="pvSub" style="display:block; margin-bottom:6px;"></div>
+        <div class="pv-legend"><span><i class="pv-sw pv-sw-val"></i>Current value</span><span><i class="pv-sw pv-sw-inv"></i>Invested</span><span><i class="pv-sw pv-sw-bar"></i>Daily change</span></div>
+        <div class="pv-wrap" id="pvWrap"></div>
       </div>
-      <div class="pf-list" id="pfList"></div>
+      <div class="pf-main" id="pfMain">
+        <div class="pf-listhead">
+          <div class="pf-title">Positions <span id="pfCount"></span></div>
+          <div class="eq-range-toggle" id="pfSort">
+            <button class="eq-range-btn on" data-pfs="value">Value</button>
+            <button class="eq-range-btn" data-pfs="returns">Returns</button>
+            <button class="eq-range-btn" data-pfs="day">1D</button>
+          </div>
+        </div>
+        <div class="pf-list" id="pfList"></div>
+      </div>
+      <div class="pf-side" id="pfSide">
+      <div class="td-card" id="tdOpenAllocCard" style="display:none;">
+        <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
+          <span>Open Position Allocation</span>
+        </div>
+        <div class="td-card-sub" id="tdOpenAllocSub" style="margin-bottom:8px; display:block;"></div>
+        <div id="tdOpenAllocList"></div>
+      </div>
+      <div class="td-card" id="cmpOvCard">
+        <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
+          <span>Portfolio vs Indices</span>
+          <div class="eq-range-toggle" id="cmpOvScope">
+            <button class="eq-range-btn on" data-scope="week">Week</button>
+            <button class="eq-range-btn" data-scope="month">Month</button>
+            <button class="eq-range-btn" data-scope="all">All time</button>
+          </div>
+        </div>
+        <div class="td-card-sub" id="cmpOvSub" style="margin-bottom:10px; display:block;"></div>
+        <div id="cmpOvBody"></div>
+      </div>
+      </div>
     </div>
 
 <div class="trade-panel" id="tpanel-pnl">
-      <div class="bk-live-row">
-        <span class="bk-live-badge" id="plLiveBadge"><span class="bk-dot"></span><span class="bk-live-text">Live prices: not set up</span></span>
-        <div class="bk-actions">
-          <div class="eq-range-toggle" id="plPeriodToggle">
-            <button class="eq-range-btn on" data-pl="all">All</button>
-            <button class="eq-range-btn" data-pl="fy">This FY</button>
-            <button class="eq-range-btn" data-pl="lfy">Last FY</button>
-            <button class="eq-range-btn" data-pl="3m">3M</button>
-            <button class="eq-range-btn" data-pl="1m">1M</button>
-          </div>
-          <button class="td-list-sort" id="plRefreshBtn">↻ Refresh prices</button>
+      <div class="pl-toolbar">
+        <span class="pl-toolbar-lbl">Period</span>
+        <div class="eq-range-toggle" id="plPeriodToggle">
+          <button class="eq-range-btn on" data-pl="all">All</button>
+          <button class="eq-range-btn" data-pl="fy">This FY</button>
+          <button class="eq-range-btn" data-pl="lfy">Last FY</button>
+          <button class="eq-range-btn" data-pl="3m">3M</button>
+          <button class="eq-range-btn" data-pl="1m">1M</button>
         </div>
       </div>
       <div id="plBanner"></div>
       <div class="pl-comp-grid" id="plComponents"></div>
-<div class="tr-group"><div class="tr-seg"><button class="tr-seg-btn on" data-g="g3" data-p="0">Realised + Unrealised</button><button class="tr-seg-btn" data-g="g3" data-p="1">Over time</button></div><div class="tr-pane on" data-g="g3" data-p="0">
+<div class="tr-group" id="plGrpTime"><div class="tr-seg"><button class="tr-seg-btn on" data-g="g3" data-p="0">Realised + Unrealised</button><button class="tr-seg-btn" data-g="g3" data-p="1">Over time</button><button class="tr-seg-btn" data-g="g3" data-p="2">Unrealised history</button></div><div class="tr-pane on" data-g="g3" data-p="0">
         <div class="td-card">
           <div class="td-card-head"><span>Realised + Unrealised = Total</span><span class="td-card-sub" id="plWaterfallSub"></span></div>
           <div id="plWaterfall"></div>
@@ -3509,8 +3575,20 @@ body.sidebar-open{ overflow:hidden; }
           <div class="pl-legend" id="plCumLegend"></div>
           <div class="pl-chart-wrap" id="plCumChart"></div>
         </div>
+</div><div class="tr-pane" data-g="g3" data-p="2">
+      <div class="td-card" id="tdUnrealCard">
+        <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
+          <span>Unrealised P&amp;L History</span>
+          <div class="eq-range-toggle" id="tdUnrealToggle">
+            <button class="eq-range-btn on" data-ukind="week">Weekly</button>
+            <button class="eq-range-btn" data-ukind="month">Monthly</button>
+          </div>
+        </div>
+        <div class="td-card-sub" id="tdUnrealSub" style="margin-bottom:8px; display:block;"></div>
+        <div id="tdUnrealList"></div>
+      </div>
 </div></div>
-<div class="tr-group"><div class="tr-seg"><button class="tr-seg-btn on" data-g="g4" data-p="0">By stock · chart</button><button class="tr-seg-btn" data-g="g4" data-p="1">By stock · table</button></div><div class="tr-pane on" data-g="g4" data-p="0">
+<div class="tr-group" id="plGrpStock"><div class="tr-seg"><button class="tr-seg-btn on" data-g="g4" data-p="0">By stock · chart</button><button class="tr-seg-btn" data-g="g4" data-p="1">By stock · table</button></div><div class="tr-pane on" data-g="g4" data-p="0">
       <div class="td-card">
         <div class="td-card-head" style="flex-wrap:wrap; gap:8px;"><span>By Stock · Realised vs Unrealised</span></div><div class="td-card-sub" style="margin-bottom:6px; display:block;">tap a stock to open its chart</div>
         <div class="pl-legend"><span><i style="background:var(--teal)"></i>Realised (booked)</span><span><i style="background:var(--teal); opacity:.55"></i>Unrealised (open, hatched)</span></div>
@@ -6747,9 +6825,9 @@ body.sidebar-open{ overflow:hidden; }
     if(liveState.status!=='ok' || age>limit) bkRefreshQuotes();
   }
   function bkLiveDependents(){
-    try{ if(bkPanelActive('pnl')) renderPnlPanel(true); }catch(e){ console.warn(e); }
+    try{ if(bkPanelActive('pnl')){ renderPnlPanel(true); renderOverviewLive(); } }catch(e){ console.warn(e); }
     try{ if(bkPanelActive('chart')) tcOnLiveTick(); }catch(e){ console.warn(e); }
-    try{ if(bkPanelActive('portfolio')) renderPortfolio(); }catch(e){ console.warn(e); }
+    try{ if(bkPanelActive('portfolio')){ renderPortfolio(); renderOverviewLive(); } }catch(e){ console.warn(e); }
     try{ if(bkPanelActive('overview')) renderOverviewLive(); }catch(e){ console.warn(e); }
   }
   function bkStartLoop(){
@@ -7756,7 +7834,7 @@ body.sidebar-open{ overflow:hidden; }
       usnapLastSig = sig;
       var prev = db.unrealSnaps[key];
       if(prev && prev.u===u && prev.c===cost && prev.n===open.length) return;
-      db.unrealSnaps[key] = {u:u, c:cost, n:open.length};
+      db.unrealSnaps[key] = {u:u, c:cost, v:Math.round(cost+u), n:open.length};
       if(!prev || Date.now()-usnapLastSave>300000){ usnapLastSave = Date.now(); saveDB(); }
     }catch(e){}
   }
@@ -7875,15 +7953,12 @@ body.sidebar-open{ overflow:hidden; }
           </div>
           <div class="td-hero-chips">
             <span class="td-chip ${heroRoc!==null?(heroRoc>=0?'pos':'neg'):''}">Return on capital <b>${heroRoc!==null?(heroRoc>=0?'+':'')+heroRoc.toFixed(1)+'%':'—'}</b></span>
-            <span class="td-chip">Win rate <b>${m.withPnlCount?Math.round(m.winRate)+'%':'—'}</b></span>
-            <span class="td-chip">Profit factor <b>${heroPf}</b></span>
           </div>
         </div>
         <div class="td-hero-stats-row">
           <div class="td-hero-stat"><div class="td-hero-stat-lbl">Today</div><div class="td-hero-stat-val ${todayPnl>=0?'pos':'neg'}">${fmtPnl(Math.round(todayPnl))}</div></div>
           <div class="td-hero-stat"><div class="td-hero-stat-lbl">Last 7 Days</div><div class="td-hero-stat-val ${weekPnl>=0?'pos':'neg'}">${fmtPnl(Math.round(weekPnl))}</div></div>
           <div class="td-hero-stat"><div class="td-hero-stat-lbl">Unrealised${liveQuotesCount()?' · live':''}</div><div class="td-hero-stat-val ${heroUnreal>=0?'pos':'neg'}">${heroHasUnreal?fmtPnl(Math.round(heroUnreal)):'—'}</div></div>
-          <div class="td-hero-stat"><div class="td-hero-stat-lbl">Capital Deployed Right Now</div><div class="td-hero-stat-val">${capitalDeployed?fmtCapitalStat(capitalDeployed):'—'}</div></div>
           <div class="td-hero-stat"><div class="td-hero-stat-lbl">Total P&amp;L · incl. unrealised</div><div class="td-hero-stat-val ${(m.net+heroUnreal)>=0?'pos':'neg'}">${heroHasUnreal?fmtPnl(Math.round(m.net+heroUnreal)):fmtPnl(Math.round(m.net))}</div></div>
           <div class="td-hero-stat"><div class="td-hero-stat-lbl">Avg Capital Used · 30D</div><div class="td-hero-stat-val">${avgDeployed30>0?fmtCapitalStat(avgDeployed30):'—'}</div></div>
         </div>`;
@@ -8267,14 +8342,15 @@ body.sidebar-open{ overflow:hidden; }
       if(!hasAct) return;
       if(i%7===5) showSat = true; else if(i%7===6) showSun = true;
     });
-    const colOffs = [0,1,2,3,4].concat(showSat?[5]:[], showSun?[6]:[]);
+    showSat = true; showSun = true; // weekends always shown (muted when closed) so no date looks missing
+    const colOffs = [0,1,2,3,4,5,6];
     const colsCss = 'repeat('+colOffs.length+',minmax(0,1fr)) minmax(44px,.9fr)';
     const tblEl = gridEl.closest('.tcal-table');
     if(tblEl) tblEl.style.setProperty('--tcal-cols', colsCss);
     const hdrEl = document.getElementById('tcalWeekdayRow');
     if(hdrEl){
       const hdrNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-      hdrEl.innerHTML = colOffs.map(o=>'<span'+(o>=5?' title="Occasional weekend session"':'')+'>'+hdrNames[o]+'</span>').join('') + '<span class="tcal-week-hdr">Week</span>';
+      hdrEl.innerHTML = colOffs.map(o=>'<span'+(o>=5?' style="opacity:.55" title="Weekend — closed unless a special session"':'')+'>'+hdrNames[o]+'</span>').join('') + '<span class="tcal-week-hdr">Week</span>';
     }
 
     let html = '';
@@ -8290,7 +8366,8 @@ body.sidebar-open{ overflow:hidden; }
         const stat = dayStats[c.key] || {pnl:0, hasPnl:false, count:0};
         const cdow = new Date(c.key+'T00:00:00').getDay();
         const md = MD[c.key], mdSpecial = !!(md && md.type==='special');
-        if((cdow===0 || cdow===6) && !stat.count && !snaps[c.key] && !mdSpecial){ html += '<div class="tcal-cell empty"></div>'; return; }
+        if((cdow===0 || cdow===6) && !stat.count && !snaps[c.key] && !mdSpecial){
+          html += '<div class="tcal-cell wk-off md-click" data-daykey="'+c.key+'" title="Weekend — market closed. Tap to add a special session"><div class="tcal-day-num">'+c.d+'</div><div class="tcal-md-tag">Closed</div></div>'; return; }
         let cls = 'tcal-cell';
         let styleAttr = '';
         if(stat.count){
@@ -9551,6 +9628,7 @@ body.sidebar-open{ overflow:hidden; }
       const av = document.querySelector('.view.active');
       const v = viewName || (av ? av.id.replace('view-','') : 'home');
       document.querySelectorAll('nav.tabs .tab-btn').forEach(b=> b.classList.remove('active'));
+      const trV = document.getElementById('view-trades'); if(trV){ const a0 = document.querySelector('#tradeSubnav .trade-subnav-btn.active'); trV.dataset.panel = a0 ? a0.dataset.tpanel : 'overview'; }
       if(v==='trades'){
         const a = document.querySelector('#tradeSubnav .trade-subnav-btn.active');
         let key = a ? a.dataset.tpanel : 'overview';
@@ -10768,7 +10846,117 @@ body.sidebar-open{ overflow:hidden; }
   // =====================================================================
   var pfSortKey = 'value';
   function pfCurrent(r){ return r.unreal!==null ? r.cost + r.unreal : (r.value!==null ? r.value : r.cost); }
+
+  /* ---------- Portfolio value vs invested (daily) ---------- */
+  var pvRangeDays = 0, pvPts = [];
+  function pvBuildPoints(){
+    var snaps = db.unrealSnaps||{}, pts = [];
+    Object.keys(snaps).sort().forEach(function(k){
+      var sn = snaps[k]; if(!sn || sn.c===undefined || sn.u===undefined) return;
+      var c = +sn.c, u = +sn.u; if(isNaN(c)||isNaN(u)) return;
+      pts.push({d:k, inv:c, val:(sn.v!==undefined && !isNaN(+sn.v)) ? +sn.v : Math.round(c+u), u:u});
+    });
+    return pts;
+  }
+  function pvFmtDate(k){ var d = new Date(k+'T00:00:00'); return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}); }
+  function pvCompact(n){
+    var a = Math.abs(n); if(a>=1e7) return (n/1e7).toFixed(2)+'Cr'; if(a>=1e5) return (n/1e5).toFixed(a>=1e6?1:2)+'L'; if(a>=1e3) return (n/1e3).toFixed(0)+'k'; return String(Math.round(n));
+  }
+  function renderPortfolioHistory(){
+    var card = bkEl('pvCard'), wrap = bkEl('pvWrap'), sub = bkEl('pvSub'); if(!card || !wrap) return;
+    var all = pvBuildPoints();
+    if(all.length<1){ card.classList.remove('has'); return; }
+    card.classList.add('has');
+    var pts = all;
+    if(pvRangeDays>0){ var cut = usnapAddDays(all[all.length-1].d, -pvRangeDays); pts = all.filter(function(p){ return p.d>=cut; }); if(!pts.length) pts = all.slice(-1); }
+    pvPts = pts;
+    // daily change: value change not caused by capital moved in/out (uses P&L delta when invested changed, else value delta)
+    var prevAll = {}; all.forEach(function(p,i){ prevAll[p.d] = i? all[i-1] : null; });
+    pts.forEach(function(p){ var pr = prevAll[p.d]; p.chg = pr ? (p.u - pr.u) : null; p.vchg = pr ? p.val - pr.val : null; });
+    var last = pts[pts.length-1], first = pts[0];
+    var hide = !!(appSettings && appSettings.hideAmounts);
+    var gap = last.val-last.inv, gp = last.inv ? gap/last.inv*100 : null;
+    var cls = function(n){ return n>=0?'pos':'neg'; };
+    if(sub){
+      var chgTxt = last.chg!==null ? ' · Today <span class="'+cls(last.chg)+'">'+plMoney(last.chg)+'</span>' : '';
+      sub.innerHTML = 'Value '+fmtMoney(last.val)+' vs invested '+fmtMoney(last.inv)+' · <span class="'+cls(gap)+'">'+plMoney(gap)+' ('+bkPct(gp)+')</span>'+chgTxt+' · '+pts.length+' day'+(pts.length===1?'':'s')+' tracked';
+    }
+    var W = Math.max(320, Math.min(720, wrap.clientWidth||640)), H = W<500 ? 250 : 300, L = 8, R = W<500 ? 44 : 52, T = 14, Bm = 26, barH = W<500 ? 38 : 46, gapY = 12;
+    var mainB = H - Bm - barH - gapY;
+    var lo = Infinity, hi = -Infinity;
+    pts.forEach(function(p){ lo = Math.min(lo,p.val,p.inv); hi = Math.max(hi,p.val,p.inv); });
+    if(hi===lo){ hi += Math.abs(hi)*0.02+1; lo -= Math.abs(lo)*0.02+1; }
+    var pad = (hi-lo)*0.12; hi += pad; lo = Math.max(0, lo-pad) ;
+    var n = pts.length, pw = W-L-R;
+    var xs = function(i){ return n===1 ? L+pw/2 : L + pw*i/(n-1); };
+    var ys = function(v){ return T + (mainB-T)*(1-(v-lo)/(hi-lo)); };
+    var path = function(key){ return pts.map(function(p,i){ return (i?'L':'M')+xs(i).toFixed(1)+' '+ys(p[key]).toFixed(1); }).join(' '); };
+    var g = '';
+    for(var t=0;t<=4;t++){
+      var v = lo+(hi-lo)*t/4, y = ys(v);
+      g += '<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" opacity=".7"/>';
+      if(!hide) g += '<text x="'+(W-R+6)+'" y="'+(y+3.5).toFixed(1)+'" font-size="10" fill="var(--ink-dim)">₹'+pvCompact(v)+'</text>';
+    }
+    // gain / loss band between invested and value
+    if(n>1){
+      var band = path('val') + ' ' + pts.slice().reverse().map(function(p,i2){ var i = n-1-i2; return 'L'+xs(i).toFixed(1)+' '+ys(p.inv).toFixed(1); }).join(' ') + ' Z';
+      var up = last.val>=last.inv;
+      g += '<path d="'+band+'" fill="'+(up?'var(--teal)':'var(--rose)')+'" opacity=".14"/>';
+    }
+    g += '<path d="'+path('inv')+'" fill="none" stroke="var(--ink-dim)" stroke-width="1.6" stroke-dasharray="5 4" opacity=".85" stroke-linejoin="round"/>';
+    g += '<path d="'+path('val')+'" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>';
+    if(n<=40) pts.forEach(function(p,i){ g += '<circle cx="'+xs(i).toFixed(1)+'" cy="'+ys(p.val).toFixed(1)+'" r="2.8" fill="var(--accent)"/>'; });
+    else g += '<circle cx="'+xs(n-1).toFixed(1)+'" cy="'+ys(last.val).toFixed(1)+'" r="3.4" fill="var(--accent)"/>';
+    if(n===1) g += '<circle cx="'+xs(0).toFixed(1)+'" cy="'+ys(last.inv).toFixed(1)+'" r="3" fill="var(--ink-dim)"/>';
+    // daily change bars
+    var bt = mainB+gapY, bz = bt+barH/2, mx = 0;
+    pts.forEach(function(p){ if(p.chg!==null) mx = Math.max(mx, Math.abs(p.chg)); });
+    mx = mx || 1;
+    g += '<line x1="'+L+'" x2="'+(W-R)+'" y1="'+bz+'" y2="'+bz+'" stroke="var(--line)" stroke-width="1"/>';
+    var bw = Math.max(2, Math.min(18, pw/Math.max(n,1)*0.6));
+    pts.forEach(function(p,i){
+      if(p.chg===null) return;
+      var h = Math.max(1.5, Math.abs(p.chg)/mx*(barH/2-2));
+      g += '<rect x="'+(xs(i)-bw/2).toFixed(1)+'" y="'+(p.chg>=0?bz-h:bz).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="1.5" fill="'+(p.chg>=0?'var(--teal)':'var(--rose)')+'" opacity=".85"/>';
+    });
+    // x labels
+    var ticks = Math.min(n, W<500?4:6), seen = {};
+    for(var k=0;k<ticks;k++){
+      var i = ticks===1 ? 0 : Math.round((n-1)*k/(ticks-1)); if(seen[i]) continue; seen[i] = 1;
+      var anchor = i===0 && n>1 ? 'start' : (i===n-1 && n>1 ? 'end' : 'middle');
+      g += '<text x="'+xs(i).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="var(--ink-dim)" text-anchor="'+anchor+'">'+pvFmtDate(pts[i].d)+'</text>';
+    }
+    g += '<line id="pvCursor" x1="0" x2="0" y1="'+T+'" y2="'+(bt+barH)+'" stroke="var(--ink-dim)" stroke-width="1" opacity="0" />';
+    wrap.innerHTML = '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Portfolio value versus invested amount by day">'+g+'</svg><div class="pv-tip" id="pvTip"></div>';
+    var svg = wrap.querySelector('svg'), tip = wrap.querySelector('#pvTip'), cur = wrap.querySelector('#pvCursor');
+    function show(ev){
+      var r = svg.getBoundingClientRect(), cx = (ev.clientX - r.left)/r.width*W;
+      var i = n===1 ? 0 : Math.round((cx-L)/pw*(n-1)); i = Math.max(0, Math.min(n-1, i));
+      var p = pts[i], x = xs(i);
+      cur.setAttribute('x1', x); cur.setAttribute('x2', x); cur.setAttribute('opacity', '.5');
+      var gl = p.val-p.inv, glp = p.inv ? gl/p.inv*100 : null;
+      tip.innerHTML = '<b>'+pvFmtDate(p.d)+'</b><br>Value '+fmtMoney(p.val)+'<br>Invested '+fmtMoney(p.inv)+'<br>Gain <span class="'+(gl>=0?'p':'n')+'">'+plMoney(gl)+' ('+bkPct(glp)+')</span>' +
+        (p.chg!==null ? '<br>Day <span class="'+(p.chg>=0?'p':'n')+'">'+plMoney(p.chg)+'</span>' : '');
+      tip.style.display = 'block';
+      var px = x/W*r.width, tw = tip.offsetWidth;
+      tip.style.left = Math.max(0, Math.min(r.width-tw, px - tw/2)) + 'px';
+      tip.style.top = '4px';
+    }
+    function hideTip(){ tip.style.display = 'none'; cur.setAttribute('opacity','0'); }
+    svg.addEventListener('pointermove', show); svg.addEventListener('pointerdown', show);
+    svg.addEventListener('pointerleave', hideTip);
+  }
+  (function(){
+    var el = document.getElementById('pvRange');
+    if(el) el.addEventListener('click', function(e){
+      var b = e.target.closest('[data-pvr]'); if(!b) return;
+      pvRangeDays = parseInt(b.dataset.pvr,10)||0;
+      el.querySelectorAll('.eq-range-btn').forEach(function(x){ x.classList.toggle('on', x===b); });
+      renderPortfolioHistory();
+    });
+  })();
   function renderPortfolio(){
+    try{ recordUnrealSnapshot(); renderPortfolioHistory(); }catch(e){ console.warn(e); }
     var sumEl = bkEl('pfSummary'), listEl = bkEl('pfList'), cnt = bkEl('pfCount'); if(!sumEl || !listEl) return;
     var rows = bkOpenRows();
     if(cnt) cnt.textContent = rows.length ? '· '+rows.length : '';
@@ -10786,8 +10974,8 @@ body.sidebar-open{ overflow:hidden; }
     var totPct = invested ? unreal/invested*100 : null, dayPct = (hasDay && dayBase) ? day/dayBase*100 : null;
     var sg = function(n){ return n===null||n===undefined||isNaN(n) ? '' : (n>=0?'pos':'neg'); };
     sumEl.innerHTML =
-      '<div class="pf-cur-lbl">Current value</div>' +
-      '<div class="pf-cur-val">'+fmtMoney(current)+'</div>' +
+      '<div class="pf-cur"><div class="pf-cur-lbl">Current value</div>' +
+      '<div class="pf-cur-val">'+fmtMoney(current)+'</div></div>' +
       '<div class="pf-grid">' +
         '<div><div class="pf-k">Total returns</div><div class="pf-v '+sg(unreal)+'">'+plMoney(unreal)+'</div><div class="pf-s '+sg(totPct)+'">'+bkPct(totPct)+'</div></div>' +
         '<div><div class="pf-k">1D returns</div><div class="pf-v '+(hasDay?sg(day):'')+'">'+(hasDay?plMoney(day):'—')+'</div><div class="pf-s '+sg(dayPct)+'">'+(hasDay?bkPct(dayPct):'live prices needed')+'</div></div>' +
@@ -11417,8 +11605,8 @@ body.sidebar-open{ overflow:hidden; }
   }
 
   function onTradePanelActivated(name){
-    if(name==='portfolio'){ renderPortfolio(); bkMaybeRefresh(); }
-    else if(name==='pnl'){ renderPnlPanel(); bkMaybeRefresh(); }
+    if(name==='portfolio'){ renderPortfolio(); try{ renderTradeOverview(); }catch(e){} bkMaybeRefresh(); }
+    else if(name==='pnl'){ renderPnlPanel(); try{ renderTradeOverview(); }catch(e){} bkMaybeRefresh(); }
     else if(name==='chart'){ tcInit(); tcRefreshTickerList(); tcChromeDirty = true; tcLoad(); bkMaybeRefresh(); }
     else if(name==='overview'){ try{ renderTradeOverview(); }catch(e){} bkMaybeRefresh(); }
   }
