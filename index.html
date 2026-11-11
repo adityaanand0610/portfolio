@@ -2472,10 +2472,14 @@ header.topbar{
   #tpanel-portfolio .pf-cur{ flex:0 0 auto; }
   #tpanel-portfolio .pf-grid{ flex:1; margin:0; padding:0 0 0 32px; border-top:none; border-left:1px dashed var(--line); }
 }
-@media (min-width:900px){
-  #pfMain{ grid-column:span 7 !important; }
-  #pfSide{ grid-column:span 5 !important; position:sticky; top:84px; }
-}
+#pfSide[hidden]{ display:none !important; }
+#tpanel-overview > #cmpOvCard{ grid-column:1 / -1; }
+.pf-w{ flex:0 0 150px; align-self:center; }
+.pf-w-top{ display:flex; justify-content:space-between; font-size:11px; color:var(--ink-dim); margin-bottom:5px; }
+.pf-w-top b{ color:var(--ink); font-weight:600; }
+.pf-w-bar{ height:6px; border-radius:4px; background:var(--line); overflow:hidden; }
+.pf-w-bar i{ display:block; height:100%; border-radius:4px; background:var(--accent); }
+@media (max-width:759.98px){ .pf-row{ flex-wrap:wrap; } .pf-w{ order:3; flex:1 1 100%; } .pf-l{ flex:1 1 0; } .pf-r{ flex:0 0 auto; max-width:62%; } .pf-row{ flex-wrap:wrap; } }
 @media (max-width:759.98px){ .pf-cur-val{ font-size:26px; } .pf-grid{ gap:8px; } .pf-v{ font-size:13px; } }
 
 /* P&L: sticky period filter + side-by-side chart groups */
@@ -2771,12 +2775,12 @@ nav.tabs{ background:var(--surface); border-right:1px solid var(--line); }
 #tpanel-overview > *{ grid-column:1 / -1; min-width:0; }
 #tpanel-overview > #tdDailyLimitBanner:empty{ display:none; }
 @media (min-width:1180px){
-  #tpanel-overview > #tdOpenAllocCard, #tpanel-overview > #cmpOvCard, #tpanel-overview > #tdUnrealCard, #tpanel-overview > #tdLessonsCarouselCard{ grid-column:span 6; }
+  #tpanel-overview > #tdOpenAllocCard, #tpanel-overview > #tdUnrealCard, #tpanel-overview > #tdLessonsCarouselCard{ grid-column:span 6; }
   #tpanel-overview > .tr-group:nth-of-type(2){ grid-column:span 6; }
   #tpanel-overview > .tr-group:nth-of-type(1){ grid-column:span 6; }
 }
 @media (min-width:1500px){
-  #tpanel-overview > #tdOpenAllocCard, #tpanel-overview > #cmpOvCard, #tpanel-overview > #tdUnrealCard, #tpanel-overview > #tdLessonsCarouselCard{ grid-column:span 4; }
+  #tpanel-overview > #tdOpenAllocCard, #tpanel-overview > #tdUnrealCard, #tpanel-overview > #tdLessonsCarouselCard{ grid-column:span 4; }
 }
 #tpanel-overview .td-card{ height:100%; }
 .pf-summary, .pl-comp-grid{ gap:12px; }
@@ -3419,6 +3423,18 @@ body.sidebar-open{ overflow:hidden; }
         <div class="cmp-since-box" id="tdEquityCmpSince" style="display:none;"></div>
         <div id="tdEquityChart"></div>
       </div>
+      <div class="td-card" id="cmpOvCard">
+        <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
+          <span>Portfolio vs Indices</span>
+          <div class="eq-range-toggle" id="cmpOvScope">
+            <button class="eq-range-btn on" data-scope="week">Week</button>
+            <button class="eq-range-btn" data-scope="month">Month</button>
+            <button class="eq-range-btn" data-scope="all">All time</button>
+          </div>
+        </div>
+        <div class="td-card-sub" id="cmpOvSub" style="margin-bottom:10px; display:block;"></div>
+        <div id="cmpOvBody"></div>
+      </div>
       <div class="td-card" id="tdLessonsCarouselCard" style="display:none;">
         <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
           <span>Lessons Reminder</span>
@@ -3528,25 +3544,13 @@ body.sidebar-open{ overflow:hidden; }
         </div>
         <div class="pf-list" id="pfList"></div>
       </div>
-      <div class="pf-side" id="pfSide">
+      <div class="pf-side" id="pfSide" hidden aria-hidden="true">
       <div class="td-card" id="tdOpenAllocCard" style="display:none;">
         <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
           <span>Open Position Allocation</span>
         </div>
         <div class="td-card-sub" id="tdOpenAllocSub" style="margin-bottom:8px; display:block;"></div>
         <div id="tdOpenAllocList"></div>
-      </div>
-      <div class="td-card" id="cmpOvCard">
-        <div class="td-card-head" style="flex-wrap:wrap; gap:8px;">
-          <span>Portfolio vs Indices</span>
-          <div class="eq-range-toggle" id="cmpOvScope">
-            <button class="eq-range-btn on" data-scope="week">Week</button>
-            <button class="eq-range-btn" data-scope="month">Month</button>
-            <button class="eq-range-btn" data-scope="all">All time</button>
-          </div>
-        </div>
-        <div class="td-card-sub" id="cmpOvSub" style="margin-bottom:10px; display:block;"></div>
-        <div id="cmpOvBody"></div>
       </div>
       </div>
     </div>
@@ -10993,6 +10997,7 @@ body.sidebar-open{ overflow:hidden; }
         '<div class="pf-l"><div class="pf-name">'+escapeHtml(r.ticker)+(r.dir==='short'?' <span class="pf-tag">SHORT</span>':'')+'</div>' +
           '<div class="pf-sub">'+Math.abs(r.qty)+' share'+(Math.abs(r.qty)===1?'':'s')+' · Avg '+bkPx(r.avg)+'</div>' +
           '<div class="pf-sub pf-faint">Invested '+fmtMoney(r.cost)+' → '+fmtMoney(cur)+'</div></div>' +
+        '<div class="pf-w"><div class="pf-w-top"><span>Weight</span><b>'+(invested?(r.cost/invested*100).toFixed(1):'0.0')+'%</b></div><div class="pf-w-bar"><i style="width:'+Math.min(100,invested?r.cost/invested*100:0).toFixed(1)+'%"></i></div></div>' +
         '<div class="pf-r"><div class="pf-ret '+sg(r.unreal)+'">'+(r.unreal!==null ? plMoney(r.unreal) : '—')+(r.unrealPct!==null ? ' <span class="pf-pct">('+bkPct(r.unrealPct)+')</span>' : '')+'</div>' +
           '<div class="pf-sub">LTP '+(hasPx?bkPx(r.ltp):'—')+(r.dayPct!==null && r.dayPct!==undefined ? ' <span class="'+sg(r.dayPct)+'">('+bkPct(r.dayPct)+')</span>' : '')+'</div>' +
           '<div class="pf-sub pf-faint">'+(r.live?'live':(hasPx?'last known'+bkAsOfSfx(r):'no price'))+'</div></div>' +
