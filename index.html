@@ -2480,7 +2480,8 @@ header.topbar{
 .pf-w-bar{ height:6px; border-radius:4px; background:var(--line); overflow:hidden; }
 .pf-w-bar i{ display:block; height:100%; border-radius:4px; background:var(--accent); }
 @media (max-width:759.98px){ .pf-row{ flex-wrap:wrap; } .pf-w{ order:3; flex:1 1 100%; } .pf-l{ flex:1 1 0; } .pf-r{ flex:0 0 auto; max-width:62%; } .pf-row{ flex-wrap:wrap; } }
-@media (max-width:759.98px){ .pf-cur-val{ font-size:26px; } .pf-grid{ gap:8px; } .pf-v{ font-size:13px; } }
+#tpanel-portfolio .pf-grid{ grid-template-columns:repeat(4,1fr); }
+@media (max-width:759.98px){ #tpanel-portfolio .pf-grid{ grid-template-columns:repeat(2,1fr); } .pf-cur-val{ font-size:26px; } .pf-grid{ gap:10px; } .pf-v{ font-size:13px; } }
 
 /* P&L: sticky period filter + side-by-side chart groups */
 .pl-toolbar{ display:flex; align-items:center; gap:10px; margin:0 0 2px; overflow-x:auto; scrollbar-width:none; }
@@ -3530,7 +3531,8 @@ body.sidebar-open{ overflow:hidden; }
           </div>
         </div>
         <div class="td-card-sub" id="pvSub" style="display:block; margin-bottom:6px;"></div>
-        <div class="pv-legend"><span><i class="pv-sw pv-sw-val"></i>Current value</span><span><i class="pv-sw pv-sw-inv"></i>Invested</span><span><i class="pv-sw pv-sw-bar"></i>Daily change</span></div>
+        <label class="cmp-toggle" style="margin:0 0 6px; display:inline-flex; gap:6px; font-size:12px;"><input type="checkbox" id="pvRealToggle" checked> Include realised P&amp;L</label>
+        <div class="pv-legend"><span><i class="pv-sw pv-sw-val"></i><b id="pvValLbl" style="font-weight:500">Total value</b></span><span><i class="pv-sw pv-sw-inv"></i>Invested</span><span><i class="pv-sw pv-sw-bar"></i>Daily change</span></div>
         <div class="pv-wrap" id="pvWrap"></div>
       </div>
       <div class="pf-main" id="pfMain">
@@ -10852,7 +10854,12 @@ body.sidebar-open{ overflow:hidden; }
   function pfCurrent(r){ return r.unreal!==null ? r.cost + r.unreal : (r.value!==null ? r.value : r.cost); }
 
   /* ---------- Portfolio value vs invested (daily) ---------- */
-  var pvRangeDays = 0, pvPts = [];
+  var pvRangeDays = 0, pvPts = [], pvRealised = true;
+  function pvRealisedSeries(){
+    var arr = (db.trades||[]).filter(function(t){ return t.exitDT && t.pnl!==undefined && t.pnl!=='' && !isNaN(parseFloat(t.pnl)); })
+      .map(function(t){ return {d:t.exitDT.slice(0,10), v:parseFloat(t.pnl)}; }).sort(function(a,b){ return a.d<b.d?-1:a.d>b.d?1:0; });
+    return function(day){ var sm = 0; for(var i=0;i<arr.length && arr[i].d<=day;i++) sm += arr[i].v; return Math.round(sm); };
+  }
   function pvBuildPoints(){
     var snaps = db.unrealSnaps||{}, pts = [];
     Object.keys(snaps).sort().forEach(function(k){
@@ -10860,6 +10867,8 @@ body.sidebar-open{ overflow:hidden; }
       var c = +sn.c, u = +sn.u; if(isNaN(c)||isNaN(u)) return;
       pts.push({d:k, inv:c, val:(sn.v!==undefined && !isNaN(+sn.v)) ? +sn.v : Math.round(c+u), u:u});
     });
+    var rAt = pvRealisedSeries();
+    pts.forEach(function(p){ p.r = rAt(p.d); p.hold = p.val; if(pvRealised){ p.val = p.hold + p.r; p.u = p.u + p.r; } });
     return pts;
   }
   function pvFmtDate(k){ var d = new Date(k+'T00:00:00'); return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}); }
@@ -10883,7 +10892,7 @@ body.sidebar-open{ overflow:hidden; }
     var cls = function(n){ return n>=0?'pos':'neg'; };
     if(sub){
       var chgTxt = last.chg!==null ? ' · Today <span class="'+cls(last.chg)+'">'+plMoney(last.chg)+'</span>' : '';
-      sub.innerHTML = 'Value '+fmtMoney(last.val)+' vs invested '+fmtMoney(last.inv)+' · <span class="'+cls(gap)+'">'+plMoney(gap)+' ('+bkPct(gp)+')</span>'+chgTxt+' · '+pts.length+' day'+(pts.length===1?'':'s')+' tracked';
+      sub.innerHTML = (pvRealised?'Total value (incl. realised '+plMoney(last.r)+') ':'Value ')+fmtMoney(last.val)+' vs invested '+fmtMoney(last.inv)+' · <span class="'+cls(gap)+'">'+plMoney(gap)+' ('+bkPct(gp)+')</span>'+chgTxt+' · '+pts.length+' day'+(pts.length===1?'':'s')+' tracked';
     }
     var W = Math.max(320, Math.min(720, wrap.clientWidth||640)), H = W<500 ? 250 : 300, L = 8, R = W<500 ? 44 : 52, T = 14, Bm = 26, barH = W<500 ? 38 : 46, gapY = 12;
     var mainB = H - Bm - barH - gapY;
@@ -10939,7 +10948,7 @@ body.sidebar-open{ overflow:hidden; }
       var p = pts[i], x = xs(i);
       cur.setAttribute('x1', x); cur.setAttribute('x2', x); cur.setAttribute('opacity', '.5');
       var gl = p.val-p.inv, glp = p.inv ? gl/p.inv*100 : null;
-      tip.innerHTML = '<b>'+pvFmtDate(p.d)+'</b><br>Value '+fmtMoney(p.val)+'<br>Invested '+fmtMoney(p.inv)+'<br>Gain <span class="'+(gl>=0?'p':'n')+'">'+plMoney(gl)+' ('+bkPct(glp)+')</span>' +
+      tip.innerHTML = '<b>'+pvFmtDate(p.d)+'</b><br>Value '+fmtMoney(p.val)+'<br>Invested '+fmtMoney(p.inv)+(pvRealised?'<br>Realised '+plMoney(p.r):'')+'<br>Gain <span class="'+(gl>=0?'p':'n')+'">'+plMoney(gl)+' ('+bkPct(glp)+')</span>' +
         (p.chg!==null ? '<br>Day <span class="'+(p.chg>=0?'p':'n')+'">'+plMoney(p.chg)+'</span>' : '');
       tip.style.display = 'block';
       var px = x/W*r.width, tw = tip.offsetWidth;
@@ -10951,6 +10960,8 @@ body.sidebar-open{ overflow:hidden; }
     svg.addEventListener('pointerleave', hideTip);
   }
   (function(){
+    var rt = document.getElementById('pvRealToggle');
+    if(rt) rt.addEventListener('change', function(){ pvRealised = rt.checked; renderPortfolioHistory(); });
     var el = document.getElementById('pvRange');
     if(el) el.addEventListener('click', function(e){
       var b = e.target.closest('[data-pvr]'); if(!b) return;
@@ -10975,14 +10986,17 @@ body.sidebar-open{ overflow:hidden; }
       invested += r.cost; current += cur; unreal += (r.unreal||0);
       if(r.dayPnl!==null && r.dayPnl!==undefined){ hasDay = true; day += r.dayPnl; dayBase += cur - r.dayPnl; }
     });
+    var realisedAll = (db.trades||[]).reduce(function(sm,t){ var v = parseFloat(t.pnl); return sm + ((t.exitDT && !isNaN(v)) ? v : 0); },0);
     var totPct = invested ? unreal/invested*100 : null, dayPct = (hasDay && dayBase) ? day/dayBase*100 : null;
     var sg = function(n){ return n===null||n===undefined||isNaN(n) ? '' : (n>=0?'pos':'neg'); };
     sumEl.innerHTML =
       '<div class="pf-cur"><div class="pf-cur-lbl">Current value</div>' +
-      '<div class="pf-cur-val">'+fmtMoney(current)+'</div></div>' +
+      '<div class="pf-cur-val">'+fmtMoney(current)+'</div>' +
+      '<div class="pf-s" style="margin-top:4px">Incl. realised: <b>'+fmtMoney(current+realisedAll)+'</b></div></div>' +
       '<div class="pf-grid">' +
         '<div><div class="pf-k">Total returns</div><div class="pf-v '+sg(unreal)+'">'+plMoney(unreal)+'</div><div class="pf-s '+sg(totPct)+'">'+bkPct(totPct)+'</div></div>' +
         '<div><div class="pf-k">1D returns</div><div class="pf-v '+(hasDay?sg(day):'')+'">'+(hasDay?plMoney(day):'—')+'</div><div class="pf-s '+sg(dayPct)+'">'+(hasDay?bkPct(dayPct):'live prices needed')+'</div></div>' +
+        '<div><div class="pf-k">Realised P&amp;L</div><div class="pf-v '+sg(realisedAll)+'">'+plMoney(realisedAll)+'</div><div class="pf-s">closed trades</div></div>' +
         '<div><div class="pf-k">Invested</div><div class="pf-v">'+fmtMoney(invested)+'</div><div class="pf-s">'+rows.length+' position'+(rows.length===1?'':'s')+'</div></div>' +
       '</div>';
     var keyFn = {
